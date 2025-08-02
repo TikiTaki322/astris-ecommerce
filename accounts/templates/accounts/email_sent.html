@@ -1,0 +1,34 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<style>
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.3s ease;
+  }
+  .card.hover-lift {
+    transition: box-shadow 0.3s ease;
+  }
+  .card.hover-lift:hover {
+    box-shadow: 0 0.75rem 1.25rem rgba(128, 128, 128, 0.3);
+    transform: translateY(-3.5px);
+  }
+</style>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+      <!-- Email Sent Confirmation -->
+      <div class="card border-black p-4">
+        <div class="card-body text-center">
+          <h3 class="mb-4">Email successfully sent</h3>
+          <p class="mb-3">Please check your inbox.</p>
+          <p class="mb-0">Link will be valid for <strong>10 minutes</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

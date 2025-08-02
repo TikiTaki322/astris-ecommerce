@@ -1,0 +1,8 @@
+Your email address on Rawpapers has just been changed.
+
+If you performed this action — no further steps are needed.
+
+If you DID NOT authorize this — your account might be compromised. Restore access immediately!
+
+IP: {{ ip_address }} | User-Agent: {{ user_agent }} | Time of request: {{ timestamp }}
+Kind regards, Rawpapers support team.

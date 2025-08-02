@@ -1,0 +1,13 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="card border-black text-center mx-auto" style="max-width: 500px;">
+  <div class="card-body">
+    <h4 class="text-black mb-3">Something went wrong</h4>
+    <p>{{ message }}</p>
+    <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary mt-3">Back to login</a>
+  </div>
+</div>
+{% endblock %}
+
+

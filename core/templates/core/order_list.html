@@ -1,0 +1,113 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<style>
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: box-shadow 0.3s ease;
+    }
+</style>
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-center mt-2 mt-md-4 mb-4">
+      <div class="card border-black p-4" style="max-width: 600px; width: 100%;">
+        <form method="get" class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <select name="status" id="status" class="form-select">
+                <option value="" {% if not selected_status %}selected{% endif %}>All orders</option>
+                {% for status in statuses %}
+                    <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status|capfirst }}</option>
+                {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <input
+              type="date"
+              id="date"
+              name="date"
+              class="form-control"
+              value="{{ request.GET.date }}">
+          </div>
+
+          <div class="col-md-2 text-end">
+            <button type="submit" class="btn btn-dark w-100">Filter</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    {% if orders %}
+        {% if user.is_staff or user.role|lower == 'seller' %}
+            <h2 class="mb-4">Orders</h2>
+        {% else %}
+            <h2 class="mb-4">Completed orders</h2>
+        {% endif %}
+        <div id="ordersAccordion">
+            {% for order in orders %}
+                <div class="card border-black mb-3">
+                    <div class="card-header" id="heading{{ forloop.counter }}">
+                        <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                            <button class="btn btn-link text-dark text-decoration-none" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}"
+                                    aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                                Order #{{ order.id }} — {{ order.payment_status|capfirst }} ({{ order.amount }} CHF)
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="collapse{{ forloop.counter }}" class="collapse"
+                         aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#ordersAccordion">
+                        <div class="card-body">
+                            <p><strong>Customer:</strong> {{ order.user }}</p>
+                            <p><strong>Order Status:</strong> {{ order.status|capfirst }}</p>
+                            <p><strong>Payment Method:</strong> {{ order.payment_method|capfirst }}</p>
+                            <p><strong>Paid at:</strong>
+                                {% if order.paid_at %}
+                                    {{ order.paid_at|date:"Y-m-d H:i" }}
+                                {% else %}
+                                    Not Paid
+                                {% endif %}
+                            </p>
+
+                            <h6>Items:</h6>
+                            <ul class="list-group mb-3">
+                                {% for item in order.items.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ item.product.name }} ×{{ item.quantity }}
+                                        <span>{{ item.price }} CHF</span>
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item text-muted">No items</li>
+                                {% endfor %}
+                            </ul>
+
+                            <a href="{% url 'core:order_detail' order.pk %}" class="btn btn-outline-primary btn-sm">
+                                View Full Order →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+      <div class="container mt-4">
+        <div class="card border-black text-center mx-auto" style="max-width: 500px;">
+          <div class="card-body">
+            <h4 class="text-black mb-3">There have been no orders yet.</h4>
+            {% if user.is_staff or user.role|lower == 'seller' %}
+              <a href="{% url 'accounts:seller_dashboard' %}" class="btn btn-outline-secondary mt-3">Back to dashboard</a>
+            {% else %}
+              <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary mt-3">Back to profile</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+</div>
+
+{% endblock %}

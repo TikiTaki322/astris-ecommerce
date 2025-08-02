@@ -1,0 +1,10 @@
+Registration confirmation
+
+Hello, {{ username }}!
+You provided this email when registering at rawpapers.store.
+To continue the registration process, please follow this link:
+
+{{ verify_url }}
+
+If you have not requested this email - just ignore it.
+Kind regards, your Rawpapers support team.

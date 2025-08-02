@@ -1,0 +1,109 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+
+<style>
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: box-shadow 0.3s ease;
+    }
+    .card.hover-lift {
+        transition: box-shadow 0.3s ease;
+    }
+    .card.hover-lift:hover {
+        box-shadow: 0 0.75rem 1.25rem rgba(128, 128, 128, 0.3);
+        transform: translateY(-3.5px);
+    }
+</style>
+
+<div class="container my-5">
+
+    <div class="d-flex justify-content-center mt-2 mt-md-4 mb-4">
+        <div class="card border-black p-4 filter-card" style="max-width: 600px; width: 100%;">
+            <form method="get" class="row g-2 align-items-center">
+                <div class="col-12 col-md">
+                    <select name="category" id="category" class="form-select">
+                        <option value="" {% if not selected_category %}selected{% endif %}>All categories</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.name }}" {% if selected_category == cat.name %}selected{% endif %}>{{ cat.name|capfirst }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if user.is_staff or user.role|lower == 'seller' %}
+                    <div class="col-12 col-md">
+                        <select name="stock_filter" class="form-select">
+                            <option value="in_stock" {% if stock_filter == "in_stock" %}selected{% endif %}>In stock</option>
+                            <option value="out_of_stock" {% if stock_filter == "out_of_stock" %}selected{% endif %}>Out of stock</option>
+                            <option value="show_all" {% if stock_filter == "show_all" %}selected{% endif %}>Show all</option>
+                        </select>
+                    </div>
+                {% endif %}
+
+                <div class="col-12 col-md-auto">
+                    <button type="submit" class="btn btn-dark w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if products %}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Products</h1>
+            {% if user.is_staff or user.role|lower == 'seller' %}
+                <a href="{% url 'core:product_create' %}" class="btn btn-outline-dark mt-3">Add Product</a>
+            {% endif %}
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for product in products %}
+                <div class="col">
+                    <div class="card border-black h-100 hover-lift">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ product.category.name|default:"—" }}</h6>
+                            <p class="card-text flex-grow-1">{{ product.description|truncatechars:100|default:"" }}</p>
+                            <p class="card-text"><strong>{{ product.price }} CHF</strong></p>
+
+                            {% if user.is_staff or user.role|lower == 'seller' %}
+                                <p class="card-text">Available: {{ product.quantity }}</p>
+                            {% endif %}
+
+                            <div class="d-flex justify-content-between mt-auto">
+                                <a href="{% url 'core:product_detail' product.pk %}" class="btn btn-outline-dark align-middle">View</a>
+                                {% if user.is_staff or user.role|lower == 'seller' %}
+                                    <form method="post" action="{% url 'core:product_delete' product.pk %}" class="d-inline-block align-middle">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete product &quot;{{ product.name }}&quot;?');">
+                                            Delete
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{% url 'core:orderitem_create' product.pk %}" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-dark">Add to cart</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <div class="card border-black text-center mx-auto mt-5" style="max-width: 500px;">
+            <div class="card-body">
+                <h4 class="text-black mb-3">There have been no products yet.</h4>
+                {% if user.is_staff or user.role|lower == 'seller' %}
+                    <a href="{% url 'core:product_create' %}" class="btn btn-outline-primary mt-3">Add Product</a>
+                    <a href="{% url 'accounts:seller_dashboard' %}" class="btn btn-outline-secondary mt-3">Return to dashboard</a>
+                {% else %}
+                    <a href="{% url 'core:product_list' %}" class="btn btn-outline-secondary mt-3">Return to store</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

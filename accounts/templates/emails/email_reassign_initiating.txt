@@ -1,0 +1,10 @@
+Email change requested on Rawpapers
+
+Hey {{ username }}, to confirm this change, click the following link (valid for 10 minutes):
+
+{{ change_email_url }}
+
+If you did not request this, simply ignore this email.
+
+IP: {{ ip_address }} | User-Agent: {{ user_agent }} | | Time of request : {{ timestamp }}
+Kind regards, Rawpapers support team.

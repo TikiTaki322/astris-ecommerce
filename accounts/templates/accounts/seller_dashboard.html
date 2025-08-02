@@ -1,0 +1,99 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+  <style>
+  /* Немного усиливаем тень у карточек */
+  .card.shadow-sm {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Кнопки одинаковой высоты и ширины, с адаптивом */
+  .btn-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 575.98px) {
+    /* Мобильный: кнопки в колонку, одинаковая ширина */
+    .btn-group-responsive {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .btn-group-responsive .btn {
+      width: 100%;
+      flex-grow: 1;
+    }
+  }
+
+  @media (min-width: 576px) {
+    /* Десктоп: кнопки рядом, равные ширины */
+    .btn-group-responsive {
+      display: flex;
+      gap: 1rem;
+    }
+    .btn-group-responsive .btn {
+      flex: 1;
+    }
+  }
+</style>
+
+<div class="container mt-5">
+  <div class="row g-4">
+    <!-- Left column: Seller info -->
+    <div class="col-lg-7">
+      <div class="card border-black shadow-sm p-4 rounded">
+        <h3 class="mb-4">Seller Profile</h3>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Username</label>
+          <div class="border rounded p-2">{{ user.username }}</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email</label>
+          <div class="border rounded p-2">{{ user.email }}</div>
+        </div>
+
+        <!-- Можно добавить бизнес-данные, например: -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Total Orders</label>
+          <div class="border rounded p-2">#</div>
+        </div>
+
+          <div class="btn-group-responsive">
+            <a href="{% url 'accounts:email_update' %}" class="btn btn-dark btn-flex">Change Email</a>
+            <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary btn-flex">Change Password</a>
+          </div>
+
+        </div>
+    </div>
+
+    <!-- Right column: Quick navigation -->
+    <div class="col-lg-5">
+      <div class="card border-black shadow-sm p-4 rounded">
+        <h4 class="mb-3">Quick navigation</h4>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <a href="{% url 'core:order_list' %}" class="text-pink text-decoration-none fw-semibold">Orders</a>
+          </li>
+          <li class="list-group-item">
+            <a href="{% url 'core:product_list' %}" class="text-pink text-decoration-none fw-semibold">Products</a>
+          </li>
+          <li class="list-group-item">
+            <a href="{% url 'core:category_list' %}" class="text-pink text-decoration-none fw-semibold">Categories</a>
+          </li>
+          <li class="list-group-item">
+            <a href="{% url 'accounts:login_logs' %}" class="text-pink text-decoration-none fw-semibold">Login Logs</a>
+          </li>
+
+          <!-- другие пункты меню -->
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

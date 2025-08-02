@@ -1,0 +1,121 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+  /* Немного усиливаем тень у карточек */
+  .card.shadow-sm {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Кнопки одинаковой высоты и ширины, с адаптивом */
+  .btn-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 575.98px) {
+    /* Мобильный: кнопки в колонку, одинаковая ширина */
+    .btn-group-responsive {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .btn-group-responsive .btn {
+      width: 100%;
+      flex-grow: 1;
+    }
+  }
+
+  @media (min-width: 576px) {
+    /* Десктоп: кнопки рядом, равные ширины */
+    .btn-group-responsive {
+      display: flex;
+      gap: 1rem;
+    }
+    .btn-group-responsive .btn {
+      flex: 1;
+    }
+  }
+</style>
+
+<div class="container mt-5">
+  <div class="row g-4">
+
+    <!-- Left column: profile -->
+    <div class="col-lg-7">
+      <div class="card border-black shadow-sm p-4 rounded">
+        <h3 class="mb-4">Your Profile</h3>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Username</label>
+          <div class="border rounded p-2">{{ user }}</div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">First Name</label>
+            <div class="border rounded p-2">{{ shipping_info.first_name|default:"-" }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Last Name</label>
+            <div class="border rounded p-2">{{ shipping_info.last_name|default:"-" }}</div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Phone</label>
+          <div class="border rounded p-2">{{ shipping_info.phone|default:"-" }}</div>
+        </div>
+
+        <div class="mb-4 d-flex flex-wrap gap-2">
+          <div>
+            <strong>Email:</strong> {{ user.email }}
+          </div>
+        </div>
+
+        <div class="btn-group-responsive">
+          <a href="{% url 'accounts:email_update' %}" class="btn btn-dark btn-flex">
+            Change Email
+          </a>
+
+          <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary btn-flex">
+            Change Password
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: links -->
+    <div class="col-lg-5">
+      <div class="card border-black shadow-sm p-4 rounded">
+        <h4 class="mb-3">Quick navigation</h4>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <a href="{% url 'accounts:login_logs' %}" class="text-pink text-decoration-none fw-semibold">
+              Login Logs
+            </a>
+          </li>
+          <li class="list-group-item">
+            <a href="{% url 'core:order_list' %}" class="text-pink text-decoration-none fw-semibold">
+              My Orders
+            </a>
+          </li>
+          <li class="list-group-item">
+            <a href="#" class="text-dark text-decoration-none fw-semibold">
+              Order Tracking
+            </a>
+          </li>
+          <li class="list-group-item">
+            <a href="{% url 'accounts:shipping_info' %}?next={% url 'accounts:profile' %}" class="text text-decoration-none fw-semibold">
+              Edit Shipping Info
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
