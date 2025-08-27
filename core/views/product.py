@@ -1,25 +1,27 @@
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.shortcuts import render, redirect, reverse, get_object_or_404
+from django.views.generic import ListView, DetailView, DeleteView
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
 
 from core.forms import ProductForm, CategoryForm
 from core.models import Product, Category
 
-from shared.mixins import SellerOnlyMixin
+from shared.permissions.mixins import AuthRequiredMixin, StaffOrSellerRequiredMixin
+from shared.permissions.utils import is_authenticated, is_staff_or_seller
+from shared.utils import redirect_with_message
 
 
-class CategoryListView(SellerOnlyMixin, ListView):
+class CategoryListView(StaffOrSellerRequiredMixin, ListView):
     success_url = reverse_lazy('core:category_list')
     template_name = 'core/category_list.html'
     context_object_name = 'categories'
 
     def get_queryset(self):
         qs = Category.objects.all()
-        return qs.order_by('name')
+        return qs.order_by('-updated_at', 'name')
 
 
-class CategoryGenericView(SellerOnlyMixin, View):
+class CategoryGenericView(StaffOrSellerRequiredMixin, View):
     form_class = CategoryForm
     template_name = 'core/category_form.html'
     success_url = reverse_lazy('core:category_list')
@@ -46,7 +48,7 @@ class CategoryGenericView(SellerOnlyMixin, View):
         return render(request, self.template_name, {'form': form, 'category': category if pk else None})
 
 
-class CategoryDeleteView(SellerOnlyMixin, DeleteView):
+class CategoryDeleteView(StaffOrSellerRequiredMixin, DeleteView):
     model = Category
     success_url = reverse_lazy('core:category_list')
 
@@ -58,38 +60,75 @@ class ProductListView(ListView):
     def get_queryset(self):
         qs = Product.objects.all()
 
-        user = self.request.user
-        stock_filter = self.request.GET.get('stock_filter')
+        if not is_staff_or_seller(self.request):
+            qs = qs.filter(quantity__gt=0, is_active=True)
+        else:
+            stock_filter = self.request.GET.get('stock_filter')
+            if stock_filter == 'out_of_stock':
+                qs = qs.filter(quantity=0)
+            elif stock_filter == 'in_stock':
+                qs = qs.filter(quantity__gt=0)
 
-        if not (user.is_authenticated and (user.is_staff or user.role == 'seller')):
-            qs = qs.filter(quantity__gt=0)
-
-        if stock_filter == 'out_of_stock':
-            qs = qs.filter(quantity=0)
-        elif stock_filter == 'in_stock':
-            qs = qs.filter(quantity__gt=0)
+            is_active_filter = self.request.GET.get('is_active_filter')
+            if is_active_filter == 'deactivated':
+                qs = qs.filter(is_active=False)
 
         category = self.request.GET.get('category')
-        if category and Category.objects.filter(name=category).exists():
+        if category:
             qs = qs.filter(category__name=category)
-        return qs.order_by('-price')
+        return qs.order_by('-updated_at', '-price')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         admin_categories = ['DEBUG Category', 'DEV Category', 'All Stock']
         all_categories = Category.objects.all()
 
-        user = self.request.user
-        if not (user.is_authenticated and (user.is_staff or user.role == 'seller')):
+        if not is_staff_or_seller(self.request):
             all_categories = all_categories.exclude(name__in=admin_categories)
 
         context['categories'] = all_categories
-        context['stock_filter'] = self.request.GET.get('stock_filter')
-        context['selected_category'] = self.request.GET.get('category')
+        context['stock_filter'] = self.request.GET.get('stock_filter') or ''
+        context['is_active_filter'] = self.request.GET.get('is_active_filter') or ''
+        context['selected_category'] = self.request.GET.get('category') or ''
+
+        context['product_toggle_visibility'] = self.request.GET.get('product_toggle_visibility')
+        context['product_deletion'] = self.request.GET.get('product_deletion')
+        context['message'] = self.request.GET.get('message')
         return context
 
 
-class ProductGenericView(SellerOnlyMixin, View):
+class ProductToggleVisibilityView(StaffOrSellerRequiredMixin, View):
+    def post(self, request, pk):
+        filters = {
+            'category': request.POST.get('category'),
+            'stock_filter': request.POST.get('stock_filter'),
+            'is_active_filter': request.POST.get('is_active_filter'),
+        }
+
+        try:
+            product = Product.objects.get(pk=pk)
+            if product.is_active:
+                product.is_active = False
+                message = f'Product "{product.name}" was deactivated.'
+            elif not product.is_active:
+                product.is_active = True
+                message = f'Product "{product.name}" was activated.'
+
+            product.save(update_fields=['is_active', 'updated_at'])
+            response = {'success': True, 'message': message}
+        except Product.DoesNotExist:
+            response = {'success': False, 'message': 'Product does not exist anymore.'}
+
+        return redirect_with_message(
+            'core:product_list',
+            filters=filters,
+            product_toggle_visibility=response.get('success', None),
+            message=response.get('message', None)
+        )
+
+
+class ProductGenericView(StaffOrSellerRequiredMixin, View):
     form_class = ProductForm
     template_name = 'core/product_form.html'
     success_url = reverse_lazy('core:product_list')
@@ -125,6 +164,24 @@ class ProductDetailView(DetailView):
     template_name = 'core/product_detail.html'
 
 
-class ProductDeleteView(SellerOnlyMixin, DeleteView):
-    model = Product
-    success_url = reverse_lazy('core:product_list')
+class ProductDeleteView(StaffOrSellerRequiredMixin, View):
+    def post(self, request, pk):
+        filters = {
+            'category': request.POST.get('category'),
+            'stock_filter': request.POST.get('stock_filter'),
+            'is_active_filter': request.POST.get('is_active_filter'),
+        }
+
+        try:
+            product = Product.objects.get(pk=pk)
+            product.delete()
+            response = {'success': True, 'message': f'Product "{product.name}" was deleted.'}
+        except Product.DoesNotExist:
+            response = {'success': False, 'message': 'Product does not exist anymore.'}
+
+        return redirect_with_message(
+            'core:product_list',
+            filters=filters,
+            product_deletion=response.get('success', None),
+            message=response.get('message', None)
+        )

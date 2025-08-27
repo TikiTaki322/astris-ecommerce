@@ -55,11 +55,14 @@
         <!-- Shipping Information -->
         <div class="mb-4">
           <h5 class="mb-3">
-            <i class="bi bi-truck"></i> Shipping to:
+            Shipping to:
           </h5>
           <div class="ps-3">
             <p class="mb-1">
               <strong>{{ shipping_info.first_name }} {{ shipping_info.last_name }}</strong>
+            </p>
+            <p class="mb-2 text-muted">
+              {{ shipping_info.email }}
             </p>
             <p class="mb-1">{{ shipping_info.street }} {{ shipping_info.house_number }}</p>
             <p class="mb-1">{{ shipping_info.city }}, {{ shipping_info.country }}</p>
@@ -79,11 +82,11 @@
               <div class="order-item">
                 <div class="d-flex justify-content-between align-items-center order-item-mobile">
                   <div class="flex-grow-1 me-3">
-                    <span class="fw-medium">{{ item.product.name }}</span>
-                    <span class="text-muted ms-2">× {{ item.quantity }} pcs</span>
+                    <span class="fw-medium">{{ item.product_name }}</span>
+                    <span class="text-muted ms-2">× {{ item.product_quantity }} pcs</span>
                   </div>
                   <div class="text-end price-nowrap">
-                    <span class="fw-medium">{{ item.price }} CHF</span>
+                    <span class="fw-medium">{{ item.product_total_price }} CHF</span>
                   </div>
                 </div>
               </div>
@@ -100,7 +103,7 @@
 
         <div class="card-body text-center">
 
-          <form method="post" action="{% url 'payments:start_payment' order.id %}" class="d-inline">
+          <form method="post" action="{% url 'payments:start_payment' order.pk %}" class="d-inline">
             {% csrf_token %}
             <button type="submit" class="btn btn-outline-success mt-3 px-5" style="min-width: 150px;">
               Pay now

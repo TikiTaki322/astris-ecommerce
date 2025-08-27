@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.conf import settings
 from django.urls import reverse
 
-
 from urllib.parse import urlencode
 
 
@@ -12,25 +11,6 @@ def redirect_with_message(view_name, filters=None, **params):
         params.update(filters)
     url = f'{reverse(view_name)}?{urlencode(params)}'
     return redirect(url)
-
-
-def get_request_user(request):
-    return getattr(request, 'user', None)
-
-
-def is_authenticated_user(request):
-    user = get_request_user(request)
-    return bool(user and user.is_authenticated)
-
-
-def is_staff_or_seller(request):
-    if is_authenticated_user(request):
-        user = get_request_user(request)
-        return bool(user and (user.is_staff or user.role == 'seller'))
-
-
-def is_order_owner(request, order):
-    return bool(order.user.user == request.user)
 
 
 def get_current_domain(request=None):

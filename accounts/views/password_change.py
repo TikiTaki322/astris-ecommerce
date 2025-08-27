@@ -8,6 +8,7 @@ from accounts.utils import get_user_by_email_verification_token, link_lifetime_c
 from accounts.forms import UserPasswordCheckForm, UserSetPasswordForm, UserPasswordResetForm
 from accounts.services.email_sender import send_email_via_resend
 
+from shared.permissions.mixins import AuthRequiredMixin
 from shared.utils import extract_audit_data_from_request
 
 import logging
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-class UserPasswordChangeView(FormView):
+class UserPasswordChangeView(AuthRequiredMixin, FormView):
     form_class = UserPasswordCheckForm
     template_name = 'accounts/password_change_request_validation.html'
 

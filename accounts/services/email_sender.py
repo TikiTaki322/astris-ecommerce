@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 RESEND_API_URL = 'https://api.resend.com/emails'
 RESEND_API_KEY = os.getenv('RESEND_API_KEY')
-FROM_EMAIL = "Rawpapers <noreply@rawpapers.store>"
+FROM_EMAIL = "Astris <noreply@rawpapers.store>"
 
 if not RESEND_API_KEY:
     raise EnvironmentError('No RESEND_API_KEY found in environment variables')

@@ -1,9 +1,9 @@
 from django.urls import path
 
 from .views.order import OrderItemListView, OrderItemCreateView, OrderItemUpdateView, OrderItemDeleteView, \
-    OrderListView, OrderDetailView
+    OrderListView, OrderChangeStatusView, OrderNotifyShippedView
 from .views.product import ProductListView, ProductGenericView, ProductDetailView, ProductDeleteView, \
-    CategoryListView, CategoryGenericView, CategoryDeleteView
+    ProductToggleVisibilityView, CategoryListView, CategoryGenericView, CategoryDeleteView
 
 
 app_name = 'core'
@@ -14,6 +14,7 @@ urlpatterns = [
     path('products/<int:pk>/update/', ProductGenericView.as_view(), name='product_update'),
     path('products/<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
     path('products/<int:pk>/delete/', ProductDeleteView.as_view(), name='product_delete'),
+    path('products/<int:pk>/toggle-visibility/', ProductToggleVisibilityView.as_view(), name='product_toggle_visibility'),
 
     path('categories/', CategoryListView.as_view(), name='category_list'),
     path('categories/create/', CategoryGenericView.as_view(), name='category_create'),
@@ -26,5 +27,9 @@ urlpatterns = [
     path('order-items/<int:pk>/delete/', OrderItemDeleteView.as_view(), name='orderitem_delete'),
 
     path('orders/', OrderListView.as_view(), name='order_list'),
-    path('orders/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
+    # path('orders/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
+
+    path('orders/<int:pk>/change-status/', OrderChangeStatusView.as_view(), name='order_change_status'),
+    path('orders/<int:pk>/mark-delivered/', OrderChangeStatusView.as_view(), name='order_delivered'),
+    path('orders/<int:pk>/notify-shipped/', OrderNotifyShippedView.as_view(), name='order_notify_shipped'),
 ]

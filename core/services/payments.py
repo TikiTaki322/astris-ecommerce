@@ -40,18 +40,19 @@ def process_webhook(webhook_data: dict):
 
         order = payment.order
         order.status = Order.OrderStatus.PAID
+        order.paid_at = payment.paid_at
         order.save()
-        logger.warning(f'[OK] Successful Payment: #{payment.id} | Transaction ID: "{payment.transaction}" | '
-                       f'Status: {payment.payment_status} | Order: #{order.id} | Customer: {order.user}\n')
+        logger.warning(f'[OK] Successful Payment: #{payment.pk} | Transaction ID: "{payment.transaction}" | '
+                       f'Status: {payment.payment_status} | Order: #{order.pk} | Customer: {order.user}\n')
 
     elif internal_status == 'initiated':
         payment.payment_status = Payment.PaymentStatus.INITIATED
-        logger.error(f'[ERROR] Delayed/Ambiguous Payment: #{payment.id} | Transaction ID: "{payment.transaction}" | '
+        logger.error(f'[ERROR] Delayed/Ambiguous Payment: #{payment.pk} | Transaction ID: "{payment.transaction}" | '
                      f'Status: {payment.payment_status}\n')
 
     else:
         payment.payment_status = Payment.PaymentStatus.FAILED
-        logger.error(f'[ERROR] Failed Payment: #{payment.id} | Transaction ID: "{payment.transaction}" | '
+        logger.error(f'[ERROR] Failed Payment: #{payment.pk} | Transaction ID: "{payment.transaction}" | '
                      f'Status: {payment.payment_status}\n')
 
     payment.save()

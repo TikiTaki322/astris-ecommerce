@@ -29,4 +29,4 @@ def create_shop_for_seller(sender, instance, created, **kwargs):
 def create_login_record(sender, request, user, **kwargs):
     ip = request.META.get('REMOTE_ADDR', '')
     ua = request.META.get('HTTP_USER_AGENT', '')
-    UserLoginHistory.objects.create(user=user, ip_address=ip, user_agent=ua)
+    UserLoginHistory.objects.create(user=user, email=user.email, ip_address=ip, user_agent=ua)

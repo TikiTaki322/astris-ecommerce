@@ -48,6 +48,8 @@ class SellerProfile(TimeStampedModel, SoftDeleteModel):
 
 class ShippingInfo(TimeStampedModel):
     user = models.OneToOneField(CustomerProfile, on_delete=models.CASCADE, related_name='shipping_info')
+    email = models.EmailField(max_length=50, blank=True, null=True)
+
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
     phone = models.CharField(max_length=20)
@@ -62,6 +64,8 @@ class ShippingInfo(TimeStampedModel):
 
 class UserLoginHistory(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='login_history')
+    email = models.EmailField(max_length=50, blank=True, null=True)
+
     ip_address = models.GenericIPAddressField()
     user_agent = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)

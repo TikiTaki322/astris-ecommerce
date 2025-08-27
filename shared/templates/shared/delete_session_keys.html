@@ -1,14 +1,10 @@
 {% extends "core/base.html" %}
 
-{% comment %}
-    {% block title %}Session release{% endblock %}
-{% endcomment %}
-
 {% block content %}
-    <h1 style="color: purple;">Here I`m deleting the session if it exists.</h1>
+    <h1 style="color: purple;">Delete session if it exists.</h1>
     {% if session %}
-        <h2 style="color: orange;">{{ message }}</h2>
+        <h2 style="color: green;">{{ message }}</h2>
     {% else %}
-        <h2 style="color: pink;">{{ message }}</h2>
+        <h2 style="color: white;">{{ message }}</h2>
     {% endif %}
 {% endblock %}

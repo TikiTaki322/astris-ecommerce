@@ -10,6 +10,6 @@ admin.site.register(SellerProfile)
 @admin.register(UserProfile)
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
-        ('Additionally', {'fields': ('phone', 'role')}),
+        ('Additionally', {'fields': ('role',)}),
     )
     list_display = ('username', 'email', 'role', 'is_staff', 'email_verified')

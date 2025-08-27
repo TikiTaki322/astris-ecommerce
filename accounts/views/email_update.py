@@ -8,6 +8,7 @@ from accounts.utils import get_user_by_email_verification_token, link_lifetime_c
 from accounts.services.email_sender import send_email_via_resend
 from accounts.forms import UserEmailUpdateForm
 
+from shared.permissions.mixins import AuthRequiredMixin
 from shared.utils import extract_audit_data_from_request
 
 import logging
@@ -15,7 +16,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class UserEmailUpdateView(FormView):
+class UserEmailUpdateView(AuthRequiredMixin, FormView):
     form_class = UserEmailUpdateForm
     template_name = 'accounts/email_change_request.html'
 
@@ -63,7 +64,7 @@ class UserEmailUpdateView(FormView):
                 text_content=text_content,
             )
         except Exception as e:
-            logger.warning(f'Update post address email failed: {new_email} | {e}\n\n')
+            logger.warning(f'Update email address failed: {new_email} | {e}\n\n')
             return self.form_invalid(form)
 
         return redirect(reverse('accounts:email_sent'))
@@ -75,11 +76,11 @@ class UserEmailUpdateConfirmView(TemplateView):
     def get(self, request, *args, **kwargs):
         token = request.GET.get('token')
         new_email = request.GET.get('new_email')
-        if not token or not new_email:
+        if not (token and new_email):
             return self.render_to_response({'message': 'Invalid request.'})
 
         user = get_user_by_email_verification_token(token)
-        if not user or not link_lifetime_check(user.email_sent_at):
+        if not (user and link_lifetime_check(user.email_sent_at)):
             return self.render_to_response({'message': 'This link has expired or is invalid.'})
 
         old_email = user.email

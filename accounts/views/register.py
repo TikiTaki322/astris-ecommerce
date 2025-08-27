@@ -76,7 +76,7 @@ class UserRegisterConfirmView(TemplateView):
         data = request.session.get('pending_user')
 
         if not token or not data or token != data.get('token'):
-            del request.session['pending_user']
+            # del request.session['pending_user']
             return self.render_to_response({'message': 'Invalid token or expired session.'})
 
         logger.warning(f"Attempt to activate: {data['email']}")
@@ -100,7 +100,7 @@ class UserRegisterConfirmView(TemplateView):
 
         session_order = request.session.get('session_order', {})
         if session_order:
-            _ = OrderBuilderService(session_order, user).build()  # Build an order based on the session
+            _ = OrderBuilderService(session_order, user).build()  # Build an order based on the session_order
             del request.session['session_order']
         del request.session['pending_user']
 

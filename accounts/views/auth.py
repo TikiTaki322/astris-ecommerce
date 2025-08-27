@@ -14,9 +14,8 @@ class UserLoginView(LoginView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        info_msg = self.request.GET.get('info')
-        if info_msg:
-            context['info'] = info_msg
+        if info := self.request.GET.get('info'):
+            context['info'] = info
         return context
 
     def form_valid(self, form):

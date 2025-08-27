@@ -1,6 +1,9 @@
 from django.shortcuts import redirect
 from django.urls import reverse, resolve, Resolver404
+
 from django.conf import settings
+
+from shared.permissions.utils import is_authenticated
 
 import logging
 
@@ -45,7 +48,7 @@ class EmailVerificationMiddleware:
 
         is_static_or_media = any(static_path.startswith(prefix) for prefix in self.exempt_prefixes)
 
-        if not request.user.is_authenticated and request.session.get('pending_user'):
+        if not is_authenticated(request) and request.session.get('pending_user'):
             if not ((static_path in self.exempt_urls) or (dynamic_path in self.exempt_view_names) or is_static_or_media):
                 logger.info(f'❌ Access blocked: {static_path=} | {dynamic_path=} | {is_static_or_media}')
                 return redirect(reverse('accounts:email_sent'))

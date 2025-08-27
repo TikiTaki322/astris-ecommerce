@@ -1,33 +1,34 @@
 from django.views.generic.edit import View, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, ListView
-from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.shortcuts import redirect, render
 from django.utils.dateparse import parse_date
 
+from shared.permissions.mixins import AuthRequiredMixin, StaffOrSellerRequiredMixin
+from shared.permissions.utils import is_authenticated, is_staff_or_seller
+
 from accounts.models import UserLoginHistory, ShippingInfo
 from accounts.forms import ShippingInfoForm
 
-User = get_user_model()
 
-
-class UserProfileView(TemplateView):
+class UserProfileView(AuthRequiredMixin, TemplateView):
     template_name = 'accounts/profile.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
 
-        if hasattr(self.request.user.customer_profile, 'shipping_info'):
-            context['shipping_info'] = self.request.user.customer_profile.shipping_info
+        if hasattr(user.customer_profile, 'shipping_info'):
+            context['shipping_info'] = user.customer_profile.shipping_info
         return context
 
 
-class SellerDashboardView(TemplateView):
+class SellerDashboardView(StaffOrSellerRequiredMixin, TemplateView):
     template_name = 'accounts/seller_dashboard.html'
 
 
-class UserLoginLogsListView(ListView):
+class UserLoginLogsListView(AuthRequiredMixin, ListView):
     template_name = 'accounts/login_logs_list.html'
     context_object_name = 'login_logs'
 
@@ -35,7 +36,7 @@ class UserLoginLogsListView(ListView):
         qs = UserLoginHistory.objects.all()
 
         user = self.request.user
-        if not (user.is_authenticated and (user.is_staff or user.role == 'seller')):
+        if not is_staff_or_seller(self.request):
             qs = qs.filter(user=user)
 
         date_str = self.request.GET.get('date')
@@ -47,7 +48,7 @@ class UserLoginLogsListView(ListView):
         return qs.order_by('-timestamp')
 
 
-class ShippingInfoGenericView(LoginRequiredMixin, View):
+class ShippingInfoGenericView(AuthRequiredMixin, View):
     form_class = ShippingInfoForm
     template_name = 'accounts/shipping_form.html'
     success_url = reverse_lazy('payments:review_order')
@@ -61,16 +62,17 @@ class ShippingInfoGenericView(LoginRequiredMixin, View):
         return render(request, self.template_name, {'form': form})
 
     def post(self, request):
-        user = request.user.customer_profile
+        user = request.user
         try:
-            shipping = user.shipping_info
+            shipping = user.customer_profile.shipping_info
             form = self.form_class(request.POST, instance=shipping)
         except ShippingInfo.DoesNotExist:
             form = self.form_class(request.POST)
 
         if form.is_valid():
             shipping_info = form.save(commit=False)
-            shipping_info.user = user
+            shipping_info.user = user.customer_profile
+            shipping_info.email = user.email
             shipping_info.save()
 
             next_url = self.request.GET.get('next') or self.request.POST.get('next')

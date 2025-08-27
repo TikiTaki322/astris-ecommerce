@@ -1,4 +1,4 @@
 from .order import OrderItemListView, OrderItemCreateView, OrderItemUpdateView, OrderItemDeleteView, \
-    OrderListView, OrderDetailView
+    OrderListView, OrderChangeStatusView, OrderNotifyShippedView
 from .product import ProductListView, ProductGenericView, ProductDetailView, ProductDeleteView, \
-    CategoryListView, CategoryGenericView, CategoryDeleteView
+    ProductToggleVisibilityView, CategoryListView, CategoryGenericView, CategoryDeleteView

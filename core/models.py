@@ -53,9 +53,17 @@ class Order(TimeStampedModel):
         DELIVERED = 'delivered', 'Delivered'
 
     user = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE)
+    tracking_info = models.CharField(max_length=256, blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     status = models.CharField(max_length=20, choices=OrderStatus.choices, default=OrderStatus.PENDING)
     price_diff = models.BooleanField(default=False)
+
+    paid_at = models.DateTimeField(blank=True, null=True)
+    shipped_at = models.DateTimeField(blank=True, null=True)
+    notified_at = models.DateTimeField(blank=True, null=True)
+    delivered_at = models.DateTimeField(blank=True, null=True)
+
+    shipping_email = models.EmailField(max_length=50, blank=True, null=True)
     shipping_first_name = models.CharField(max_length=128)
     shipping_last_name = models.CharField(max_length=128)
     shipping_phone = models.CharField(max_length=20)
@@ -68,7 +76,7 @@ class Order(TimeStampedModel):
     shipping_additional_info = models.CharField(max_length=256, blank=True, null=True)
 
     def __str__(self):
-        return f'Order #{self.id} by {self.user}'
+        return f'Order #{self.pk}'
 
     @cached_property
     def latest_payment(self):
@@ -82,36 +90,26 @@ class Order(TimeStampedModel):
     def payment_status(self):
         return self.latest_payment.payment_status if self.latest_payment else None
 
-    @property
-    def paid_at(self):
-        return self.latest_payment.paid_at if self.latest_payment else None
+    # @property
+    # def paid_at(self):
+    #     return self.latest_payment.paid_at if self.latest_payment else None
 
     @property
     def delivery_price(self):
         return Decimal('8.50') if self.amount < 50 else Decimal('0.00')
 
 
-# class OrderItem(TimeStampedModel):
-#     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-#     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-#     quantity = models.PositiveIntegerField(default=1)
-#     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-#     price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-
 class OrderItem(TimeStampedModel):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    product_id_snapshot = models.PositiveIntegerField()
     product_name = models.CharField(max_length=100)
     product_quantity = models.PositiveIntegerField(default=1)
     product_description = models.CharField(max_length=300, blank=True)
-    product_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     product_unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-
-    # quantity = models.PositiveIntegerField(default=1)
-    # price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    product_total_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
     def __str__(self):
-        return f'{self.product}'
+        return f'{self.product_name}'
 
 
 class Payment(TimeStampedModel):
@@ -133,4 +131,4 @@ class Payment(TimeStampedModel):
     paid_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return f'Payment #{self.id} by {self.order.user}'
+        return f'Payment #{self.pk} by {self.order.user}'

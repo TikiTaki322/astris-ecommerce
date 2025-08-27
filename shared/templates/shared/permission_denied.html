@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<style>
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.3s ease;
+  }
+  .card.hover-lift {
+    transition: box-shadow 0.3s ease;
+  }
+  .card.hover-lift:hover {
+    box-shadow: 0 0.75rem 1.25rem rgba(128, 128, 128, 0.3);
+    transform: translateY(-3.5px);
+  }
+</style>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+      <!-- Permission Denied -->
+      <div class="card border-danger p-4 hover-lift">
+        <div class="card-body text-center">
+          <h3 class="mb-4 text-danger">Access Denied</h3>
+          <p class="mb-3">You don’t have the necessary permissions to view this page.</p>
+          <p class="mb-3">If you believe this is a mistake, please contact support.</p>
+          <a href="{% url 'core:product_list' %}" class="btn btn-outline-dark mt-3">Back to main page</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

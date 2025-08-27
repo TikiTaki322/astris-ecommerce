@@ -1,0 +1,44 @@
+ORDER #{{ order.pk }} HAS BEEN SHIPPED
+========================================
+
+Hello, {{ order.shipping_first_name }} {{ order.shipping_last_name }}!
+
+Great news! Your order is on its way to you.
+
+ORDER DETAILS:
+--------------
+{% for item in order.items.all %}
+{{ item.product_name }}
+Quantity: {{ item.product_quantity }} × {{ item.product_unit_price }} CHF
+Total: {{ item.product_total_price }} CHF
+{% if not forloop.last %}
+---
+{% endif %}
+{% endfor %}
+
+{% if order.amount %}
+========================================
+TOTAL: {{ order.amount }} CHF
+========================================
+{% endif %}
+
+SHIPPING DETAILS:
+------------
+{{ order.shipping_first_name }} {{ order.shipping_last_name }}
+
+{{ order.shipping_street }} {{ order.shipping_house_number }}
+{{ order.shipping_city }}, {{ order.shipping_country }}
+Postal code: {{ order.shipping_postal_code }}
+Phone: {{ order.shipping_phone }}
+
+
+{% if order.tracking_info %}
+TRACKING INFORMATION:
+{{ order.tracking_info }}
+{% endif %}
+
+Thanks for choosing us! We appreciate that.
+
+----------------------------------------
+Kind regards,
+Astris Support Team

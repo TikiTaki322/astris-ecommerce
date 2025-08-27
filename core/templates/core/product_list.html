@@ -17,41 +17,63 @@
 </style>
 
 <div class="container my-5">
-
+    <!-- Filter Card -->
     <div class="d-flex justify-content-center mt-2 mt-md-4 mb-4">
         <div class="card border-black p-4 filter-card" style="max-width: 600px; width: 100%;">
             <form method="get" class="row g-2 align-items-center">
                 <div class="col-12 col-md">
-                    <select name="category" id="category" class="form-select">
+                    <select name="category" id="category" class="form-select mb-1 mb-md-0">
                         <option value="" {% if not selected_category %}selected{% endif %}>All categories</option>
                         {% for cat in categories %}
-                            <option value="{{ cat.name }}" {% if selected_category == cat.name %}selected{% endif %}>{{ cat.name|capfirst }}</option>
+                            <option value="{{ cat.name }}" {% if selected_category == cat.name %}selected{% endif %}>
+                                {{ cat.name|capfirst }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
 
                 {% if user.is_staff or user.role|lower == 'seller' %}
                     <div class="col-12 col-md">
-                        <select name="stock_filter" class="form-select">
+                        <select name="stock_filter" class="form-select mb-1 mb-md-0">
                             <option value="in_stock" {% if stock_filter == "in_stock" %}selected{% endif %}>In stock</option>
                             <option value="out_of_stock" {% if stock_filter == "out_of_stock" %}selected{% endif %}>Out of stock</option>
                             <option value="show_all" {% if stock_filter == "show_all" %}selected{% endif %}>Show all</option>
                         </select>
                     </div>
+
+                    <div class="col-12 col-md-auto pe-md-2 ps-md-2 pt-md-1">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_active_filter"
+                                   name="is_active_filter" value="deactivated"
+                                   {% if is_active_filter == "deactivated" %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active_filter">Deactivated</label>
+                        </div>
+                    </div>
                 {% endif %}
 
                 <div class="col-12 col-md-auto">
-                    <button type="submit" class="btn btn-dark w-100">Filter</button>
+                    <button type="submit" class="btn btn-dark w-100 mt-1 mt-md-0">Filter</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Action Messages -->
+    {% if product_deletion or product_toggle_visibility %}
+        <div class="alert alert-success mt-4 border-black" style="background: #F3F3F3" role="alert">
+            {{ message }}
+        </div>
+    {% elif product_deletion is not None or product_toggle_visibility is not None %}
+        <div class="alert alert-warning mt-4 border-black" role="alert">
+            {{ message }}
+        </div>
+    {% endif %}
+
     {% if products %}
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="mb-0">Products</h1>
+            <h2 class="mb-0">Products</h2>
             {% if user.is_staff or user.role|lower == 'seller' %}
-                <a href="{% url 'core:product_create' %}" class="btn btn-outline-dark mt-3">Add Product</a>
+                <a href="{% url 'core:product_create' %}" class="btn btn-outline-dark">Add Product</a>
             {% endif %}
         </div>
 
@@ -72,16 +94,33 @@
                             <div class="d-flex justify-content-between mt-auto">
                                 <a href="{% url 'core:product_detail' product.pk %}" class="btn btn-outline-dark align-middle">View</a>
                                 {% if user.is_staff or user.role|lower == 'seller' %}
-                                    <form method="post" action="{% url 'core:product_delete' product.pk %}" class="d-inline-block align-middle">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete product &quot;{{ product.name }}&quot;?');">
-                                            Delete
-                                        </button>
-                                    </form>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <form method="post" action="{% url 'core:product_toggle_visibility' product.pk %}" class="m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="category" value="{{ selected_category }}">
+                                            <input type="hidden" name="stock_filter" value="{{ request.GET.stock_filter }}">
+                                            <input type="hidden" name="is_active_filter" value="{{ request.GET.is_active_filter }}">
+                                            <button type="submit"
+                                                    class="btn {% if product.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}">
+                                                {% if product.is_active %}Deactivate{% else %}Activate{% endif %}
+                                            </button>
+                                        </form>
+
+                                        <form method="post" action="{% url 'core:product_delete' product.pk %}" class="m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="category" value="{{ selected_category }}">
+                                            <input type="hidden" name="stock_filter" value="{{ request.GET.stock_filter }}">
+                                            <input type="hidden" name="is_active_filter" value="{{ request.GET.is_active_filter }}">
+                                            <button type="submit" class="btn btn-outline-danger"
+                                                    onclick="return confirm('Delete product &quot;{{ product.name }}&quot;?');">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
                                 {% else %}
                                     <form method="post" action="{% url 'core:orderitem_create' product.pk %}" class="m-0">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-dark">Add to cart</button>
+                                        <button type="submit" class="btn btn-outline-success">Add to cart</button>
                                     </form>
                                 {% endif %}
                             </div>

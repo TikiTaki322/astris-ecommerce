@@ -105,4 +105,4 @@ class UserEmailUpdateForm(forms.Form):
 class ShippingInfoForm(forms.ModelForm):
     class Meta:
         model = ShippingInfo
-        exclude = ['user']
+        exclude = ['user', 'email']

@@ -10,7 +10,7 @@ from core.models import Order
 from accounts.models import ShippingInfo
 from core.services.payments import initiate_payment, process_webhook
 
-from shared.utils import is_authenticated_user
+from shared.permissions.utils import is_authenticated
 from payments.utils import log_webhook_source
 
 import json
@@ -20,13 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 def start_checkout(request):
-    if not is_authenticated_user(request):
+    if not is_authenticated(request):
         return redirect(f"{reverse('accounts:login')}?info=login_required_for_payment")
     return redirect('accounts:shipping_info')
 
 
 def start_payment(request, pk):
-    if not is_authenticated_user(request):
+    if not is_authenticated(request):
         return redirect(f"{reverse('accounts:login')}?info=login_required_for_payment")
 
     order = get_object_or_404(Order, pk=pk)
@@ -35,11 +35,7 @@ def start_payment(request, pk):
     if not shipping:
         return redirect(f"{reverse('accounts:shipping_info')}?info=shipping_required")
 
-    # try:
-    #     shipping = request.user.customer_profile.shipping_info
-    # except ShippingInfo.DoesNotExist:
-    #     return redirect('accounts:shipping_info')
-
+    order.shipping_email = shipping.email
     order.shipping_first_name = shipping.first_name
     order.shipping_last_name = shipping.last_name
     order.shipping_phone = shipping.phone

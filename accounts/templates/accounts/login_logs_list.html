@@ -39,7 +39,7 @@
     </div>
 
     {% if login_logs %}
-        <h2 class="mb-4">Login logs</h2>
+        <h2 class="mb-4">Login History</h2>
 
         <div class="accordion" id="loginHistoryAccordion">
             {% for log in login_logs %}
@@ -63,10 +63,9 @@
                     <div id="collapse{{ forloop.counter }}" class="collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#loginHistoryAccordion">
                         <div class="card-body">
                             <p><strong>Date and time:</strong> {{ log.timestamp|date:"Y-m-d H:i:s" }}</p>
+                            <p><strong>User-Agent:</strong><br> {{ log.user_agent }}</p>
                             <p><strong>IP address:</strong> {{ log.ip_address }}</p>
-                            <p><strong>User-Agent:</strong><br>{{ log.user_agent }}</p>
-                            <p><strong>Email:</strong><br>{{ log.user.email }}</p>
-                            <p><strong>Username:</strong><br>{{ log.user }}</p>
+                            <p><strong>Email:</strong> {{ log.email|default:"—" }}</p>
                         </div>
                     </div>
                 </div>

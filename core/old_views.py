@@ -1,20 +1,3 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.views import View
-from django.urls import reverse_lazy, reverse
-
-from .models import Product, Order, OrderItem
-from .forms import ProductForm
-
-from core.services.inventory import release_product_resources
-from core.services.order_price_sync import OrderPriceSyncService
-
-from shared.utils import redirect_with_message, is_authenticated_user
-from shared.mixins import SellerOnlyMixin
-
-from decimal import Decimal
-
-
 """
     Классовые вьюхи (CBV — Class Based Views)
 
@@ -183,10 +166,12 @@ from decimal import Decimal
 
 # def order_detail(request, pk):
 #     order = Order.objects.filter(pk=pk, user=request.user.customer_profile).prefetch_related('items', 'items__product').first()
-#     return render(request, 'core/order_detail.html', {'order': order})
+#     return render(request, 'core/order_detail_FROZEN.html', {'order': order})
 
 
-"""  
+""" 
+- Еще нужно синхронизировать цены в момент платежа, наверное, проконсультироваться с ИИ.
+
 - Реализовать Celery: Для реально асинхронной логики используют вынесенные воркеры (Celery), 
     которые выполняют задачи в фоне, независимо от main-thread.
     его надо привязать к отправкам писем, и моменты где работают методы Django ORM как .save() and .get()
@@ -211,6 +196,12 @@ from decimal import Decimal
 - добавить update order логику (чтоб в самой корзине можно +- удалять добавлять элементы)
 
 - покрыть тестами middleware?
+
+- мб добавить отправку эмейла на ивент перехода order в статус "Paid"
+
+- Стандартизируй префиксы логов: [RESERVE], [RELEASE], [STATUS], [MAIL].
+
+- Еще нужно синхронизировать цены в момент платежа, наверное, проконсультироваться с ИИ
 
 - добавить срок годности на session_order — чтобы ограничить лайфтайм. можно добавлять значение lifetime прям в сессию, 
     и обновлять его если в корзину был добавлен еще один итем.

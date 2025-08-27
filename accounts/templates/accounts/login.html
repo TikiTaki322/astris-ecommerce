@@ -49,6 +49,10 @@
         <div class="alert alert-warning text-center border-black mb-4">
           Please log in to proceed with your order.
         </div>
+      {% elif info == "login_required" %}
+        <div class="alert alert-warning text-center border-black mb-4">
+          Please log in to continue.
+        </div>
       {% endif %}
 
       <!-- Login Form -->

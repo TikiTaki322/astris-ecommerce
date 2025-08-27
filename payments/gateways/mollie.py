@@ -47,16 +47,16 @@ class MollieGateway(PaymentGateway):
                 'currency': currency,
                 'value': str(order.amount)
             },
-            'description': f'Order-{order.id}',
+            'description': f'Order-{order.pk}',
             'redirectUrl': redirect_url,
             'webhookUrl': webhook_url,
             'method': 'twint',
             'metadata': {
                 'user_id': str(user_id),
-                'order_id': str(order.id),
+                'order_id': str(order.pk),
                 'items': [
-                    {'name': item.product.name, 'quantity': item.quantity, 'price': str(item.price)}
-                    for item in order.items.select_related('product')
+                    {'name': item.product_name, 'quantity': item.product_quantity, 'price': str(item.product_total_price)}
+                    for item in order.items.all()
                 ]
             },
         }

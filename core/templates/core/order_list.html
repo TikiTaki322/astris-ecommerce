@@ -7,87 +7,511 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transition: box-shadow 0.3s ease;
     }
+
+    /* Updated disabled button styles - более минималистичный серый с border-black */
+    .btn-disabled-custom {
+        background-color: #e9ecef !important;
+        border-color: #000000 !important; /* border-black */
+        color: #6c757d !important;
+        cursor: not-allowed !important;
+        opacity: 0.8 !important;
+        font-weight: 510 !important;
+    }
+
+    .btn-disabled-custom:hover {
+        background-color: #e9ecef !important;
+        border-color: #000000 !important; /* border-black */
+        color: #6c757d !important;
+    }
+
+    .btn-disabled-custom-delivered {
+        color: #8e0ee3 !important;
+    }
+
+    .btn-disabled-custom-notified {
+        color: #8a9ba8 !important;
+    }
+
+    /* Desktop styles - как было */
+    @media (min-width: 768px) {
+        .btn-group-desktop {
+            gap: 0.5rem;
+        }
+
+        .order-header-desktop {
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .order-info-desktop {
+            flex-grow: 1;
+            text-align: left;
+        }
+    }
+
+    /* Mobile styles - ПОЛНОСТЬЮ ПЕРЕПИСАННЫЕ */
+    @media (max-width: 767.98px) {
+        .card-mobile {
+            border-radius: 8px !important;
+        }
+
+        .order-header-mobile {
+            flex-direction: column;
+            gap: 1rem;
+            padding: 0.75rem;
+        }
+
+        .order-info-mobile {
+            text-align: left;
+            font-size: 0.95rem;
+            width: 100%;
+            padding: 0;
+        }
+
+        /* Мобильные кнопки - ИСПРАВЛЕНО */
+        .mobile-buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0 1rem;
+        }
+
+        .btn-mobile {
+            font-size: 0.85rem !important;
+            padding: 0.6rem 1.2rem !important;
+            white-space: nowrap;
+            text-align: center;
+            min-height: 38px;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Стили для collapse на мобилке */
+        .mobile-collapse {
+            margin-top: 0;
+        }
+
+        .mobile-collapse .card-body {
+            padding: 1rem;
+            background-color: #fafafa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        /* Мобильная информация о заказе */
+        .mobile-order-info {
+            line-height: 1.4;
+        }
+
+        .mobile-order-info .order-meta {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .mobile-order-info .order-main {
+            font-size: 1rem;
+        }
+    }
+
+    /* Общие улучшения */
+    .order-amount {
+        font-weight: 600;
+    }
+
+    /* Цвета amount в зависимости от статуса */
+    .order-amount-shipped {
+        color: #198754; /* зеленый для shipped */
+    }
+
+    .order-amount-paid {
+        color: #ed9b02; /* оранжевый для paid */
+    }
+
+    .order-amount-pending {
+        color: #8a9ba8; /* серо-голубой для pending */
+    }
+
+    .order-amount-delivered {
+        color: #8e0ee3; /* фиолетовый для delivered */
+    }
+
+    .order-status {
+        font-weight: 500;
+        text-transform: capitalize;
+    }
 </style>
 
 <div class="container py-4">
-
+    <!-- Filter Card -->
     <div class="d-flex justify-content-center mt-2 mt-md-4 mb-4">
-      <div class="card border-black p-4" style="max-width: 600px; width: 100%;">
-        <form method="get" class="row g-3 align-items-end">
-          <div class="col-md-6">
-            <select name="status" id="status" class="form-select">
-                <option value="" {% if not selected_status %}selected{% endif %}>All orders</option>
-                {% for status in statuses %}
-                    <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status|capfirst }}</option>
-                {% endfor %}
-            </select>
-          </div>
+        <div class="card border-black p-4" style="max-width: 600px; width: 100%;">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-6 mb-1 mb-md-0">
+                    <select name="status" id="status" class="form-select">
+                        <option value="" {% if not selected_status %}selected{% endif %}>All orders</option>
+                        {% for status in statuses %}
+                            <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>
+                                {{ status|capfirst }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-          <div class="col-md-4">
-            <input
-              type="date"
-              id="date"
-              name="date"
-              class="form-control"
-              value="{{ request.GET.date }}">
-          </div>
+                <div class="col-md-4 mb-2 mb-md-0">
+                    <input
+                        type="date"
+                        id="date"
+                        name="date"
+                        class="form-control"
+                        value="{{ request.GET.date }}">
+                </div>
 
-          <div class="col-md-2 text-end">
-            <button type="submit" class="btn btn-dark w-100">Filter</button>
-          </div>
-
-        </form>
-      </div>
+                <div class="col-md-2 text-end">
+                    <button type="submit" class="btn btn-dark w-100">Filter</button>
+                </div>
+            </form>
+        </div>
     </div>
 
+    <!-- Action Messages -->
+    {% if status_changed or notification_sent %}
+        <div class="alert alert-success mt-4 border-black" style="background: #F3F3F3" role="alert">
+            {{ message }}
+        </div>
+    {% elif status_changed is not None or notification_sent is not None %}
+        <div class="alert alert-warning mt-4 border-black" role="alert">
+            {{ message }}
+        </div>
+    {% endif %}
+
     {% if orders %}
-        {% if user.is_staff or user.role|lower == 'seller' %}
-            <h2 class="mb-4">Orders</h2>
-        {% else %}
-            <h2 class="mb-4">Completed orders</h2>
-        {% endif %}
+        <h2 class="mb-4">Orders</h2>
+
         <div id="ordersAccordion">
             {% for order in orders %}
-                <div class="card border-black mb-3">
+                <div class="card border-black mb-3 card-mobile">
                     <div class="card-header" id="heading{{ forloop.counter }}">
-                        <h5 class="mb-0 d-flex justify-content-between align-items-center">
-                            <button class="btn btn-link text-dark text-decoration-none" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}"
-                                    aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
-                                Order #{{ order.id }} — {{ order.payment_status|capfirst }} ({{ order.amount }} CHF)
+                        <div class="d-flex order-header-desktop order-header-mobile">
+                            <!-- Order Info Button -->
+                            <button class="btn btn-link text-dark text-decoration-none text-start p-0 order-info-desktop order-info-mobile" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}"
+                                aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+
+                                <!-- Desktop version -->
+                                <div class="min-width-0 d-none d-md-block">
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                        <span class="text-muted">{{ order.created_at|date:"M j, H:i" }}</span>
+                                        <span class="text-muted">•</span>
+                                        <span>Order #{{ order.pk }}{% if user.is_staff or user.role|lower == 'seller' %}
+                                            by <strong>{{ order.user }}{% endif %}</strong></span>
+                                    </div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="order-status">{{ order.status|capfirst }}:</span>
+                                        <span class="order-amount order-amount-{{ order.status }}">{{ order.amount }} CHF</span>
+                                    </div>
+                                </div>
+
+                                <!-- Mobile version -->
+                                <div class="mobile-order-info d-block d-md-none">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold">Order #{{ order.pk }}</span>
+                                        <span class="text-muted">{{ order.created_at|date:"M j, H:i" }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="order-status">{{ order.status|capfirst }}:</span>
+                                        <span class="order-amount order-amount-{{ order.status }}">{{ order.amount }} CHF</span>
+                                    </div>
+                                </div>
                             </button>
-                        </h5>
+
+                            <!-- Action Buttons -->
+                            {% if user.is_staff or user.role|lower == "seller" %}
+                                <!-- Desktop buttons -->
+                                <div class="d-none d-md-flex btn-group-desktop">
+                                    <!-- Status Change Button for Staff/Seller -->
+                                    {% if order.status == 'paid' or order.status == 'shipped' %}
+                                        <form method="post" action="{% url 'core:order_change_status' order.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="{{ selected_status }}">
+                                            <input type="hidden" name="date" value="{{ request.GET.date }}">
+                                            {% if order.status == 'paid' %}
+                                                <button type="button" class="btn btn-outline-warning" style="min-width: 110px;"
+                                                        data-bs-toggle="modal" data-bs-target="#trackingModalDesktop{{ order.pk }}">
+                                                    Mark as shipped
+                                                </button>
+
+                                                <!-- Modal with tracking_info field -->
+                                                <div class="modal fade" id="trackingModalDesktop{{ order.pk }}" tabindex="-1" aria-hidden="true">
+                                                  <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                      <div class="modal-header">
+                                                        <h5 class="modal-title w-100 text-center">Enter Tracking Info</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                      </div>
+                                                      <div class="modal-body">
+                                                        <input type="text" class="form-control" name="tracking_info" placeholder="Tracking # (specify carrier)">
+                                                      </div>
+                                                      <div class="modal-footer justify-content-center">
+                                                        <!-- This "submit" goes to the same form -->
+                                                        <button type="submit" class="btn btn-outline-warning">Confirm</button>
+                                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+
+                                            {% elif order.status == 'shipped' %}
+                                                <button type="submit" class="btn btn-outline-dark" style="min-width: 110px;">
+                                                    Return to paid
+                                                </button>
+                                            {% endif %}
+                                        </form>
+                                    {% endif %}
+
+                                    <!-- Notification Button -->
+                                    <form method="post" action="{% url 'core:order_notify_shipped' order.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="{{ selected_status }}">
+                                        <input type="hidden" name="date" value="{{ request.GET.date }}">
+                                        {% if order.delivered_at %}
+                                            <button type="submit" class="btn btn-disabled-custom btn-disabled-custom-delivered" disabled style="min-width: 110px;">
+                                                Delivered
+                                            </button>
+                                        {% elif order.notified_at %}
+                                            <button class="btn btn-disabled-custom btn-disabled-custom-notified" disabled style="min-width: 110px;">
+                                                Notified
+                                            </button>
+                                        {% else %}
+                                            {% if order.status == 'paid' or order.status == 'shipped' %}
+                                                <button type="submit" style="min-width: 110px;"
+                                                        class="btn {% if order.status == 'paid' %}btn-outline-secondary
+                                                        {% elif order.status == 'shipped' %}btn-outline-success{% endif %}">
+                                                    Notify
+                                                </button>
+                                            {% endif %}
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            {% elif user.role|lower == "customer" %}
+                            <!-- "Mark as Delivered" Button for Customers -->
+                                <div class="d-none d-md-flex btn-group-desktop">
+                                    <form method="post" action="{% url 'core:order_delivered' order.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="{{ selected_status }}">
+                                        <input type="hidden" name="date" value="{{ request.GET.date }}">
+                                        {% if order.status == 'delivered' %}
+                                            <button type="submit" class="btn btn-disabled-custom btn-disabled-custom-delivered" disabled style="min-width: 110px;">
+                                                Delivered
+                                            </button>
+                                        {% elif order.status == 'shipped' %}
+                                            <button type="submit" class="btn btn-outline-success" style="min-width: 110px;">
+                                                Mark as Delivered
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Mobile buttons - Distinct branch -->
+                        {% if user.is_staff or user.role|lower == 'seller' %}
+                            <div class="d-md-none mobile-buttons-container mb-3">
+                                <!-- Status Change Button for Staff/Seller -->
+                                {% if order.status == 'paid' or order.status == 'shipped' %}
+                                    <form method="post" action="{% url 'core:order_change_status' order.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="{{ selected_status }}">
+                                        <input type="hidden" name="date" value="{{ request.GET.date }}">
+                                        {% if order.status == 'paid' %}
+                                            <button type="button" class="btn btn-outline-warning btn-mobile"
+                                                    data-bs-toggle="modal" data-bs-target="#trackingModalMobile{{ order.pk }}">
+                                                Mark as shipped
+                                            </button>
+
+                                            <!-- Modal with tracking_info field -->
+                                            <div class="modal fade" id="trackingModalMobile{{ order.pk }}" tabindex="-1" aria-hidden="true">
+                                              <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                  <div class="modal-header">
+                                                    <h5 class="modal-title w-100 text-center">Enter Tracking Info</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                  </div>
+                                                  <div class="modal-body">
+                                                    <input type="text" class="form-control" name="tracking_info" placeholder="Tracking # (specify carrier)">
+                                                  </div>
+                                                  <div class="modal-footer justify-content-center">
+                                                    <!-- This "submit" goes to the same form -->
+                                                    <button type="submit" class="btn btn-outline-warning">Confirm</button>
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+
+                                        {% elif order.status == 'shipped' %}
+                                            <button type="submit" class="btn btn-outline-dark btn-mobile">
+                                                Return to paid
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                {% endif %}
+
+                                <!-- Notification Button -->
+                                <form method="post" action="{% url 'core:order_notify_shipped' order.pk %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="{{ selected_status }}">
+                                    <input type="hidden" name="date" value="{{ request.GET.date }}">
+
+                                    {% if order.delivered_at %}
+                                        <button type="submit" class="btn btn-disabled-custom btn-disabled-custom-delivered btn-mobile" disabled>
+                                            Delivered
+                                        </button>
+                                    {% elif order.notified_at %}
+                                        <button class="btn btn-disabled-custom btn-disabled-custom-notified btn-mobile" disabled>
+                                            Notified
+                                        </button>
+                                    {% else %}
+                                        {% if order.status == 'paid' or order.status == 'shipped' %}
+                                            <button type="submit"
+                                                    class="btn btn-mobile
+                                                    {% if order.status == 'paid' %}btn-outline-secondary
+                                                    {% elif order.status == 'shipped' %}btn-outline-success{% endif %}">
+                                                Notify
+                                            </button>
+                                        {% endif %}
+                                    {% endif %}
+                                </form>
+                            </div>
+                        {% elif user.role|lower == "customer" %}
+                        <!-- Mark as Delivered Button -->
+                            <div class="d-md-none mobile-buttons-container mb-3">
+                                <form method="post" action="{% url 'core:order_delivered' order.pk %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="{{ selected_status }}">
+                                    <input type="hidden" name="date" value="{{ request.GET.date }}">
+                                    {% if order.status == 'delivered' %}
+                                        <button type="submit" class="btn btn-disabled-custom btn-disabled-custom-delivered btn-mobile" disabled>
+                                            Delivered
+                                        </button>
+                                    {% elif order.status == 'shipped' %}
+                                        <button type="submit" class="btn btn-outline-success btn-mobile">
+                                            Mark as Delivered
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        {% endif %}
                     </div>
 
-                    <div id="collapse{{ forloop.counter }}" class="collapse"
+                    <!-- Collapsible Order Details -->
+                    <div id="collapse{{ forloop.counter }}" class="collapse mobile-collapse"
                          aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#ordersAccordion">
                         <div class="card-body">
-                            <p><strong>Customer:</strong> {{ order.user }}</p>
-                            <p><strong>Order Status:</strong> {{ order.status|capfirst }}</p>
-                            <p><strong>Payment Method:</strong> {{ order.payment_method|capfirst }}</p>
-                            <p><strong>Paid at:</strong>
-                                {% if order.paid_at %}
-                                    {{ order.paid_at|date:"Y-m-d H:i" }}
-                                {% else %}
-                                    Not Paid
+                            <div class="row">
+                                <h5 class="mb-3 mt-2">Order Details:</h5>
+                                <div class="col-md-6">
+                                    <p><strong>Username:</strong> {{ order.user }}</p>
+                                    <p><strong>Email:</strong> {{ order.shipping_email|default:"—" }}</p>
+                                    <p><strong>Order Status:</strong> {{ order.status|capfirst }}</p>
+                                    {% if user.is_staff or user.role|lower == 'seller' %}
+                                        <p><strong>Payment Status:</strong> {{ order.payment_status|default:"—"|capfirst }}</p>
+                                    {% endif %}
+                                    <p><strong>Payment Method:</strong> {{ order.payment_method|default:"—"|capfirst }}</p>
+                                </div>
+                                {% if user.is_staff or user.role|lower == 'seller' %}
+                                    <div class="col-md-6">
+                                        <p><strong>Paid at:</strong>
+                                            {% if order.paid_at %}
+                                                {{ order.paid_at|date:"Y-m-d H:i" }}
+                                            {% else %}
+                                                <span class="text-muted">Order is not paid yet</span>
+                                            {% endif %}
+                                        </p>
+
+                                        <p><strong>Shipped at:</strong>
+                                            {% if order.shipped_at %}
+                                                {{ order.shipped_at|date:"Y-m-d H:i" }}
+                                            {% else %}
+                                                <span class="text-muted">Order is not shipped yet</span>
+                                            {% endif %}
+                                        </p>
+
+                                        <p><strong>Notified at:</strong>
+                                            {% if order.notified_at %}
+                                                {{ order.notified_at|date:"Y-m-d H:i" }}
+                                            {% else %}
+                                                <span class="text-muted">Customer is not notified yet</span>
+                                            {% endif %}
+                                        </p>
+
+                                        <p><strong>Delivered at:</strong>
+                                            {% if order.delivered_at %}
+                                                {{ order.delivered_at|date:"Y-m-d H:i" }}
+                                            {% else %}
+                                                <span class="text-muted">Order is not delivered yet</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
                                 {% endif %}
-                            </p>
+                            </div>
 
-                            <h6>Items:</h6>
-                            <ul class="list-group mb-3">
-                                {% for item in order.items.all %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        {{ item.product.name }} ×{{ item.quantity }}
-                                        <span>{{ item.price }} CHF</span>
-                                    </li>
-                                {% empty %}
-                                    <li class="list-group-item text-muted">No items</li>
-                                {% endfor %}
-                            </ul>
+                            <hr>
 
-                            <a href="{% url 'core:order_detail' order.pk %}" class="btn btn-outline-primary btn-sm">
-                                View Full Order →
-                            </a>
+                            <!-- Shipping Details Section -->
+                            {% if order.shipping_city %}
+                                <div class="mt-4">
+                                    <h5 class="mb-3">Shipping Details:</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Full Name:</strong> {{ order.shipping_first_name }} {{ order.shipping_last_name }}</p>
+                                            <p><strong>Phone:</strong> {{ order.shipping_phone }}</p>
+                                            <p><strong>Country:</strong> {{ order.shipping_country }}</p>
+                                            <p><strong>City:</strong> {{ order.shipping_city }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Shipping Address:</strong> {{ order.shipping_street }} {{ order.shipping_house_number }}{% if order.shipping_apartment %}, apt. {{ order.shipping_apartment }}{% endif %}</p>
+                                            <p><strong>Postal Code:</strong> {{ order.shipping_postal_code }}</p>
+                                            {% if order.shipping_additional_info %}
+                                                <p><strong>Additional Info:</strong> {{ order.shipping_additional_info }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                            {% endif %}
+
+                            {% if order.tracking_info %}
+                                <div class="mt-4">
+                                    <h5 class="mb-3">Order Tracking:</h5>
+                                    <div class="row">
+                                        <p><strong>Tracking ID:</strong> {{ order.tracking_info }}</p>
+                                    </div>
+                                </div>
+                                <hr>
+                            {% endif %}
+
+                            <div class="mt-4">
+                                <h5 class="mb-3">Order Items:</h5>
+                                <ul class="list-group mb-3">
+                                    {% for item in order.items.all %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1 me-3" style="min-width: 0;">
+                                                <span class="d-block">{{ item.product_name }}</span>
+                                                <small class="text-muted">Quantity: {{ item.product_quantity }}</small>
+                                            </div>
+                                            <div class="text-end" style="min-width: 80px; flex-shrink: 0;">
+                                                <span class="fw-bold text-nowrap">{{ item.product_total_price }} CHF</span>
+                                            </div>
+                                        </li>
+                                    {% empty %}
+                                        <li class="list-group-item text-muted">No items</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -95,18 +519,19 @@
         </div>
 
     {% else %}
-      <div class="container mt-4">
-        <div class="card border-black text-center mx-auto" style="max-width: 500px;">
-          <div class="card-body">
-            <h4 class="text-black mb-3">There have been no orders yet.</h4>
-            {% if user.is_staff or user.role|lower == 'seller' %}
-              <a href="{% url 'accounts:seller_dashboard' %}" class="btn btn-outline-secondary mt-3">Back to dashboard</a>
-            {% else %}
-              <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary mt-3">Back to profile</a>
-            {% endif %}
-          </div>
+        <!-- No Orders block -->
+        <div class="container mt-4">
+            <div class="card border-black text-center mx-auto" style="max-width: 500px;">
+                <div class="card-body">
+                    <h4 class="text-black mb-3">There have been no orders yet.</h4>
+                    {% if user.is_staff or user.role|lower == 'seller' %}
+                        <a href="{% url 'accounts:seller_dashboard' %}" class="btn btn-outline-secondary mt-3">Back to dashboard</a>
+                    {% else %}
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary mt-3">Back to profile</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
     {% endif %}
 </div>
 

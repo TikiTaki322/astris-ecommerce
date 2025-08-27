@@ -3,14 +3,55 @@
 {% block content %}
 
 <style>
-    .card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        transition: box-shadow 0.3s ease;
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.3s ease;
+}
+
+.category-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 65px;
+}
+
+.category-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.category-actions {
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+@media (max-width: 576px) {
+    .category-card-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.75rem;
+        min-height: auto;
     }
+
+    .category-actions {
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .category-actions .btn {
+        flex: 1;
+        max-width: 120px;
+        min-width: 110px;
+    }
+}
 </style>
 
 <div class="container py-4">
-
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">Categories</h2>
         <a href="{% url 'core:category_create' %}" class="btn btn-outline-dark">Add Category</a>
@@ -20,28 +61,37 @@
         <div>
             {% for category in categories %}
                 <div class="card border-black mb-3">
-                    <div class="card-header px-3 py-2">
-                        <div class="d-flex justify-content-between align-items-start gap-3">
-                            <div class="flex-grow-1 min-width-0">
-                                {{ category.name }}
-                                <div class="text-muted small mt-1">{{ category.description|truncatechars:30|default:"" }}</div>
+                    <div class="card-header px-3 py-3 category-card-header">
+                        <div class="category-info">
+                            <div class="d-flex align-items-center">
+                                <div>
+                                    <h5 class="mb-1">{{ category.name }}</h5>
+                                    {% if category.description %}
+                                        <div class="text-muted small mt-1">{{ category.description|truncatechars:50 }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="d-flex gap-2 flex-shrink-0">
-                                <a href="{% url 'core:category_update' category.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        </div>
 
-                                <form method="post" action="{% url 'core:category_delete' category.id %}" class="d-inline-block align-middle m-0">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete category &quot;{{ category.name }}&quot;?');">
-                                        Delete
-                                    </button>
-                                </form>
-                            </div>
+                        <!--Action Buttons-->
+                        <div class="category-actions">
+                            <a href="{% url 'core:category_update' category.pk %}"
+                               class="btn btn-outline-primary" style="min-width: 110px;">Edit</a>
+
+                            <form method="post" action="{% url 'core:category_delete' category.pk %}"
+                                  class="d-inline-block m-0">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-outline-danger" style="min-width: 110px;"
+                                        onclick="return confirm('Delete category &quot;{{ category.name }}&quot;?');">
+                                    Delete
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
-
     {% else %}
         <div class="container mt-4">
             <div class="card border-black text-center mx-auto" style="max-width: 500px;">

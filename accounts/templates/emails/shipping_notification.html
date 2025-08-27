@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <!-- <img src="" alt="Astris" width="120" style="margin-bottom: 20px;">-->
+        <h2 style="color: #2c3e50; margin: 0;">Order #{{ order.pk }} has been shipped</h2>
+    </div>
+
+    <p>Hello, <strong>{{ order.shipping_first_name }} {{ order.shipping_last_name }}</strong>!</p>
+    <p>Great news! Your order is on its way to you.</p>
+
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #495057;">Order Details:</h3>
+        {% for item in order.items.all %}
+            <div style="border-bottom: 1px solid #dee2e6; padding: 15px 0; {% if forloop.last %}border-bottom: none;{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <h5 style="margin: 0 0 5px 0; color: #343a40;">{{ item.product_name }}</h5>
+                        <p style="margin: 0; font-size: 14px; color: #6c757d;">
+                            Quantity: {{ item.product_quantity }} × {{ item.product_unit_price }}
+                        </p>
+                    </div>
+                    <div style="text-align: right; margin-left: 20px;">
+                        <strong style="color: #28a745; font-size: 16px;">{{ item.product_total_price }} CHF</strong>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        {% if order.amount %}
+            <div style="text-align: right; margin-top: 15px; padding-top: 15px; border-top: 2px solid #dee2e6;">
+                <strong style="font-size: 18px; color: #343a40;">Total: {{ order.amount }} CHF</strong>
+            </div>
+        {% endif %}
+    </div>
+
+    <div style="background-color: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #495057;">Shipping Details:</h3>
+        <div style="padding-left: 15px;">
+            <p style="margin: 0 0 8px 0; color: #495057;">
+                <strong>{{ order.shipping_first_name }} {{ order.shipping_last_name }}</strong>
+            </p>
+            <p style="margin: 0 0 8px 0; color: #495057;">{{ order.shipping_street }} {{ order.shipping_house_number }}</p>
+            <p style="margin: 0 0 8px 0; color: #495057;">{{ order.shipping_city }}, {{ order.shipping_country }}</p>
+            <p style="margin: 0; color: #6c757d; font-size: 14px;">Postal code: {{ order.shipping_postal_code }}</p>
+            <p style="margin: 0; color: #6c757d; font-size: 14px;">Phone: {{ order.shipping_phone }}</p>
+        </div>
+    </div>
+
+    {% if order.tracking_info %}
+        <div style="background-color: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>Tracking Information:</strong></p>
+            <p style="margin: 5px 0 0 0; font-family: monospace; font-size: 16px; color: #007bff;">
+                Tracking ID: {{ order.tracking_info }}
+            </p>
+        </div>
+    {% endif %}
+
+    <p style="margin-top: 30px;">Thanks for choosing us! We appreciate that.</p>
+
+    <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
+    <p style="font-size: 12px; color: #888; margin: 0;">
+        Kind regards,<br>
+        <strong>Astris Support Team</strong>
+    </p>
+</body>
+</html>

@@ -1,13 +1,34 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<div class="card border-black text-center mx-auto" style="max-width: 500px;">
-  <div class="card-body">
-    <h4 class="text-black mb-3">Something went wrong</h4>
-    <p>{{ message }}</p>
-    <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary mt-3">Back to login</a>
+
+<style>
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.3s ease;
+  }
+  .card.hover-lift {
+    transition: box-shadow 0.3s ease;
+  }
+  .card.hover-lift:hover {
+    box-shadow: 0 0.75rem 1.25rem rgba(128, 128, 128, 0.3);
+    transform: translateY(-3.5px);
+  }
+</style>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+      <!-- Link Error -->
+      <div class="card border-danger hover-lift p-4">
+        <div class="card-body text-center">
+          <h4 class="text-danger mb-3">Something went wrong</h4>
+          <p class="mb-3">{{ message }}</p>
+          <a href="{% url 'accounts:login' %}" class="btn btn-outline-dark mt-2">Back to login</a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
 {% endblock %}
-
-
