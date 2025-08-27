@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Order #{{ order.id }}</h1>
+    <h1>Order #{{ order.pk }}</h1>
 
     <!-- Order Details -->
     <div class="card border-black mt-4">
@@ -59,7 +59,7 @@
         </ul>
     </div>
     {% endif %}
-
+order_detail
     <div class="card border-black mt-4">
         <div class="card-header">
             <h5>Items</h5>
@@ -67,8 +67,8 @@
         <ul class="list-group list-group-flush">
             {% for item in order.items.all %}
             <li class="list-group-item d-flex justify-content-between">
-                {{ item.product.name }} ×{{ item.quantity }}
-                <span>{{ item.price }} CHF</span>
+                {{ item.product_name }} ×{{ item.product_quantity }}
+                <span>{{ item.product_total_price }} CHF</span>
             </li>
             {% empty %}
             <li class="list-group-item text-muted">No items</li>
