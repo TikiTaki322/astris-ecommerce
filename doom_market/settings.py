@@ -36,13 +36,16 @@ if os.getenv('DEBUG') == '1':
 
 AUTH_USER_MODEL = 'accounts.UserProfile'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'core:product_list'
 LOGOUT_REDIRECT_URL = 'core:product_list'
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,  # включить все стандартные логгеры
+    'disable_existing_loggers': False,  # Enable all standard loggers
     'formatters': {
         'verbose': {
             'format': '{levelname} {asctime} {module}:{lineno} — {message}',
@@ -66,7 +69,7 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console', 'file'],
-        'level': 'INFO',  # или DEBUG
+        'level': 'INFO',  # or DEBUG
     },
     'loggers': {
         'django': {
@@ -74,7 +77,7 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
-        '__main__': {  # важно, если запускаешь скрипты напрямую
+        '__main__': {  # Important if you run scripts directly
             'handlers': ['console'],
             'level': 'DEBUG',
         },

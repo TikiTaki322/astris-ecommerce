@@ -7,21 +7,18 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transition: box-shadow 0.3s ease;
     }
-    .card.hover-lift {
-        transition: box-shadow 0.3s ease;
+    .form-control {
+        width: 193px;
+        padding: 0.32rem 0.25rem;
+        border-radius: 0.375rem;
+        border: 1px solid #ced4da;
     }
-    .card.hover-lift:hover {
-        box-shadow: 0 0.75rem 1.25rem rgba(128, 128, 128, 0.3);
-        transform: translateY(-3.5px);
-    }
-    @media (max-width: 575.98px) {
-        .mobile-center-form .row {
-            text-align: center;
-        }
-        .mobile-center-form label {
-            text-align: center !important;
-            margin-bottom: 0.25rem;
-        }
+    .form-actions {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 1.6rem;
+        margin-bottom: 0.4rem;
     }
 </style>
 
@@ -30,45 +27,35 @@
         <div class="col-12 col-sm-10 col-md-8 col-lg-6">
             <div class="card border-black p-4">
                 <div class="card-body text-center">
-                    <h3 class="mb-4">
-                        {% if category %}Edit "{{ category.name }}"{% else %}Add new category{% endif %}
+                    <h3 class="mb-2">
+                        {% if category %}Edit category "{{ category.name }}"{% else %}Add new category{% endif %}
                     </h3>
                 </div>
 
-                <form method="post" novalidate class="mobile-center-form">
+                <form method="post" novalidate>
                     {% csrf_token %}
-
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
+                    {% for field in form %}
+                        <div class="d-flex justify-content-center align-items-center mb-3">
+                            <label for="{{ field.id_for_label }}" class="me-2"
+                                style="min-width: 45px;">
+                                {{ field.label }}:
+                            </label>
+                            {{ field }}
                         </div>
-                    {% endif %}
+                        {% if field.errors %}
+                            <div class="text-danger small text-center">{{ field.errors }}</div>
+                        {% endif %}
+                    {% endfor %}
 
-                    <div class="d-flex flex-column gap-3">
-                        {% for field in form %}
-                            <div class="row align-items-start gx-2">
-                                <label class="col-12 col-sm-4 col-form-label text-sm-end px-2">
-                                    {{ field.label_tag }}
-                                </label>
-                                <div class="col-12 col-sm-8 px-2">
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        <div class="text-danger small">{{ field.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="card-body text-center">
-                        <button type="submit" class="btn btn-outline-primary mt-3 px-5" style="min-width: 150px;">
-                            Save
+                    <!-- Actions Buttons -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary ">
+                            {% if category %}Save changes{% else %}Create category{% endif %}
                         </button>
-                        <a href="{% url 'core:category_list' %}" class="btn btn-outline-secondary mt-3 px-5" style="min-width: 120px;">
-                            Cancel
-                        </a>
+                        <a href="{% url 'core:category_list' %}" class="btn btn-outline-dark">Cancel</a>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>

@@ -16,9 +16,9 @@ class UserProfile(AbstractUser, TimeStampedModel, SoftDeleteModel):
     email_verification_token = models.CharField(max_length=64, blank=True, null=True)
     email_sent_at = models.DateTimeField(null=True, blank=True)
 
-    email = models.EmailField(max_length=50, unique=True)
-    username = models.CharField(max_length=30, unique=True)
-    role = models.CharField(max_length=20, choices=Role.choices, default=Role.CUSTOMER)
+    email = models.EmailField(max_length=40, unique=True)
+    username = models.CharField(max_length=24, unique=True)
+    role = models.CharField(max_length=16, choices=Role.choices, default=Role.CUSTOMER)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -48,23 +48,23 @@ class SellerProfile(TimeStampedModel, SoftDeleteModel):
 
 class ShippingInfo(TimeStampedModel):
     user = models.OneToOneField(CustomerProfile, on_delete=models.CASCADE, related_name='shipping_info')
-    email = models.EmailField(max_length=50, blank=True, null=True)
+    email = models.EmailField(max_length=40, blank=True, null=True)
 
-    first_name = models.CharField(max_length=128)
-    last_name = models.CharField(max_length=128)
-    phone = models.CharField(max_length=20)
-    country = models.CharField(max_length=64)
-    city = models.CharField(max_length=64)
-    postal_code = models.CharField(max_length=10)
-    street = models.CharField(max_length=128)
-    house_number = models.CharField(max_length=10)
-    apartment = models.CharField(max_length=10, blank=True, null=True)
-    additional_info = models.CharField(max_length=256, blank=True, null=True)
+    first_name = models.CharField(max_length=56)
+    last_name = models.CharField(max_length=56)
+    phone = models.CharField(max_length=24)
+    country = models.CharField(max_length=56)
+    city = models.CharField(max_length=56)
+    postal_code = models.CharField(max_length=16)
+    street = models.CharField(max_length=56)
+    house_number = models.CharField(max_length=16)
+    apartment = models.CharField(max_length=16, blank=True, null=True)
+    additional_info = models.CharField(max_length=128, blank=True, null=True)
 
 
 class UserLoginHistory(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='login_history')
-    email = models.EmailField(max_length=50, blank=True, null=True)
+    email = models.EmailField(max_length=40, blank=True, null=True)
 
     ip_address = models.GenericIPAddressField()
     user_agent = models.TextField()

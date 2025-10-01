@@ -2,13 +2,18 @@ from django.views.generic import ListView, DetailView, DeleteView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
+from django.db import transaction
 
-from core.forms import ProductForm, CategoryForm
-from core.models import Product, Category
+from core.services.product_image_sync import ProductImageSyncService
+from core.forms import ProductForm, ProductImageFormSet, CategoryForm
+from core.models import Product, ProductImage, Category
 
 from shared.permissions.mixins import AuthRequiredMixin, StaffOrSellerRequiredMixin
 from shared.permissions.utils import is_authenticated, is_staff_or_seller
 from shared.utils import redirect_with_message
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class CategoryListView(StaffOrSellerRequiredMixin, ListView):
@@ -27,25 +32,20 @@ class CategoryGenericView(StaffOrSellerRequiredMixin, View):
     success_url = reverse_lazy('core:category_list')
 
     def get(self, request, pk=None):
-        if pk:
-            category = get_object_or_404(Category, pk=pk)
-            form = self.form_class(instance=category)
-        else:
-            form = self.form_class()
-        return render(request, self.template_name, {'form': form, 'category': category if pk else None})
+        category = get_object_or_404(Category, pk=pk) if pk else None
+        form = self.form_class(instance=category)
+
+        return render(request, self.template_name, {'form': form, 'category': category})
 
     def post(self, request, pk=None):
-        if pk:
-            category = get_object_or_404(Category, pk=pk)
-            form = self.form_class(request.POST, instance=category)
-        else:
-            form = self.form_class(request.POST)
+        category = get_object_or_404(Category, pk=pk) if pk else None
+        form = self.form_class(request.POST, instance=category)
 
         if form.is_valid():
             form.save()
             return redirect(self.success_url)
 
-        return render(request, self.template_name, {'form': form, 'category': category if pk else None})
+        return render(request, self.template_name, {'form': form, 'category': category})
 
 
 class CategoryDeleteView(StaffOrSellerRequiredMixin, DeleteView):
@@ -57,10 +57,13 @@ class ProductListView(ListView):
     template_name = 'core/product_list.html'
     context_object_name = 'products'
 
+    ADMIN_CATEGORIES = ['DEBUG Category', 'DEV Category']
+
     def get_queryset(self):
         qs = Product.objects.all()
 
         if not is_staff_or_seller(self.request):
+            qs = qs.exclude(category__name__in=self.ADMIN_CATEGORIES)
             qs = qs.filter(quantity__gt=0, is_active=True)
         else:
             stock_filter = self.request.GET.get('stock_filter')
@@ -81,11 +84,9 @@ class ProductListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        admin_categories = ['DEBUG Category', 'DEV Category', 'All Stock']
         all_categories = Category.objects.all()
-
         if not is_staff_or_seller(self.request):
-            all_categories = all_categories.exclude(name__in=admin_categories)
+            all_categories = all_categories.exclude(name__in=self.ADMIN_CATEGORIES)
 
         context['categories'] = all_categories
         context['stock_filter'] = self.request.GET.get('stock_filter') or ''
@@ -137,26 +138,33 @@ class ProductGenericView(StaffOrSellerRequiredMixin, View):
         return {'shop': self.request.user.seller_profile.shop}
 
     def get(self, request, pk=None):
-        if pk:
-            product = get_object_or_404(Product, pk=pk)
-            form = self.form_class(instance=product)
-        else:
-            form = self.form_class()
-        return render(request, self.template_name, {'form': form, 'product': product if pk else None})
+        product = get_object_or_404(Product, pk=pk) if pk else None
+        form = self.form_class(instance=product, **self.get_form_kwargs())
+        image_formset = ProductImageFormSet(instance=product)
+
+        context = {'form': form, 'image_formset': image_formset, 'product': product}
+        return render(request, self.template_name, context)
 
     def post(self, request, pk=None):
-        if pk:
-            product = get_object_or_404(Product, pk=pk)
-            form = self.form_class(request.POST, instance=product)
-        else:
-            form = self.form_class(request.POST)
+        product = get_object_or_404(Product, pk=pk) if pk else None
+        form = self.form_class(request.POST, instance=product, **self.get_form_kwargs())
+        image_formset = ProductImageFormSet(request.POST, request.FILES, instance=product)
 
-        if form.is_valid():
-            form.shop = request.user.seller_profile.shop
-            form.save()
-            return redirect(self.success_url)
+        if form.is_valid() and image_formset.is_valid():
+            try:
+                with transaction.atomic():
+                    product = form.save()
+                    image_formset.instance = product
+                    image_formset.save()
 
-        return render(request, self.template_name, {'form': form, 'product': product if pk else None})
+                    ProductImageSyncService(product).sync_product_images()
+
+                return redirect(self.success_url)
+            except Exception as e:
+                logger.info(f'Product saving error, transaction has rolled back | {e}')
+
+        context = {'form': form, 'image_formset': image_formset, 'product': product}
+        return render(request, self.template_name, context)
 
 
 class ProductDetailView(DetailView):

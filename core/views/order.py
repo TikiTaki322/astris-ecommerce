@@ -275,24 +275,3 @@ class OrderNotifyShippedView(StaffOrSellerRequiredMixin, View):
             notification_sent=response.get('success', None),
             message=response.get('message', None),
         )
-
-
-""" In case of use in the near future """
-# class OrderDetailView(AuthRequiredMixin, DetailView):
-#     template_name = 'core/order_detail_FROZEN.html'
-#     context_object_name = 'order'
-#
-#     def dispatch(self, request, *args, **kwargs):
-#         if not self.get_queryset().exists():
-#             return redirect(reverse('shared:permission_denied'))
-#         return super().dispatch(request, *args, **kwargs)
-#
-#     def get_queryset(self):
-#         order_pk = self.kwargs['pk']
-#         user = self.request.user
-#         qs = Order.objects.prefetch_related('items')
-#
-#         if is_staff_or_seller(self.request):
-#             return qs.filter(pk=order_pk)
-#         else:
-#             return qs.filter(pk=order_pk, user=user.customer_profile)

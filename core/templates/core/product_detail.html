@@ -2,63 +2,207 @@
 
 {% block content %}
 
-<div class="container mt-5">
-    <div class="card shadow-sm rounded">
-        <div class="card-header" style="background-color: #4CAF50; color: white;">
-            <h4 class="mb-0">{{ product.name }}</h4>
-        </div>
+<style>
+  .btn-add-to-cart {
+      color: white;
+      background-color: #7673ce;
+  }
+  .btn-add-to-cart:hover {
+      color: white;
+      background-color: #ca77e296;
+  }
 
-        <!-- Карусель изображений -->
-        <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
+  .product-card {
+    border-radius: .5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 3rem;
+    background: linear-gradient(0deg, #fcc3fffa 0%, #381eef85 100%);
+  }
 
-                <!-- Картинки-заглушки (можно заменить на реальные image.url) -->
-                <div class="carousel-item active">
-                    <img src="https://picsum.photos/seed/23/600/400" class="d-block w-100" style="object-fit: cover; max-height: 400px;" alt="...">
+  .card {
+    width: 640px;
+  }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .product-title {
+    font-weight: 600;
+    font-size: 1.5rem;
+  }
+
+  .btn {
+    border-radius: .3rem;
+    font-size: 0.9rem;
+    padding: .4rem .8rem;
+  }
+
+  .text-muted {
+    color: #6c757d !important;
+  }
+
+  /* previews */
+  .thumbs {
+    margin-top: 10px;
+    display: flex;
+    gap: .5rem;
+    overflow-x: auto;
+  }
+  .thumbs img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border: 2px solid transparent;
+    border-radius: .25rem;
+    cursor: pointer;
+    transition: border-color .2s ease;
+  }
+  .thumbs img.active, .thumbs img:hover { border-color: white; }
+
+  .carousel-inner img, .carousel-control-prev, .carousel-control-next, .no-images-div {
+    object-fit: cover;
+    height: 500px;
+  }
+  .carousel-inner img, .no-images-div {
+    border: 2px solid transparent;
+    border-radius: .45rem;
+    border-color: white;
+  }
+
+  @media (max-width: 575.98px) {
+    .carousel-inner img, .carousel-control-prev, .carousel-control-next, .no-images-div {
+      height: 400px;
+    }
+  }
+</style>
+
+<div class="d-flex justify-content-center container mt-5">
+  <div class="card product-card border-black p-3">
+    <div class="row g-4">
+
+      <!-- Image Block -->
+      <div>
+        {% if product.has_image %}
+          <div id="productCarousel" class="carousel slide">
+            <div class="carousel-inner rounded">
+              {% for image in product.images.all %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                  <img src="{{ image.get_image_url }}"
+                       class="d-block w-100"
+                       alt="{{ image.get_alt_text }}"
+                       loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
                 </div>
-                <div class="carousel-item">
-                    <img src="https://picsum.photos/seed/321/600/400" class="d-block w-100" style="object-fit: cover; max-height: 400px;" alt="...">
-                </div>
-                <div class="carousel-item">
-                    <img src="https://picsum.photos/seed/666/600/400" class="d-block w-100" style="object-fit: cover; max-height: 400px;" alt="...">
-                </div>
+              {% endfor %}
             </div>
 
-            <!-- Arrows -->
-            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
+            {% if product.images.count > 1 %}
+              <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+              </button>
+
+              <!-- Previews -->
+              <div class="thumbs d-flex justify-content-center">
+                {% for image in product.images.all %}
+                  <img src="{{ image.get_image_url }}"
+                       alt="{{ image.get_alt_text }}"
+                       data-bs-target="#productCarousel"
+                       data-bs-slide-to="{{ forloop.counter0 }}"
+                       class="thumb {% if forloop.first %}active{% endif %}">
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="text-center py-5 rounded no-images-div">
+            <i class="fas fa-image fa-2x mb-2"></i>
+            <div class="mt-2 justify-content-center">
+              <h4 style="color: white;">No images</h4>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Content Block -->
+      <div class="d-flex flex-column">
+
+        <!-- Title -->
+        <div class="d-flex justify-content-start align-items-center mb-3 gap-2">
+          <h1 class="product-title mb-1">{{ product.name|capfirst }}</h1>
+          {% if product.category %}
+            <div class="text-muted small">{{ product.category.name|capfirst }}</div>
+          {% endif %}
         </div>
+
+        <!-- Info -->
+        <ul class="list-unstyled mb-3">
+          <li><strong>Price:</strong> {{ product.price }} CHF</li>
+
+          {% if user.is_staff or user.role|lower == 'seller' %}
+            <li><strong>Stock:</strong> {{ product.quantity }} pcs.</li>
+          {% endif %}
+        </ul>
 
         <!-- Description -->
-        <div class="card-body">
-            <p class="mb-2"><strong>Category:</strong> {{ product.category.name|capfirst|default:"—" }}</p>
-            <p class="mb-2"><strong>Price:</strong> {{ product.price }} CHF</p>
-            <p class="mb-2"><strong>Description:</strong> {{ product.description|default:"—" }}</p>
+        {% if product.description %}
+          <div class="mb-3">
+            <p class="text-muted">{{ product.description }}</p>
+          </div>
+        {% endif %}
 
-            {% if user.is_staff or user.role|lower == 'seller' %}
-                <p class="mb-2"><strong>Available:</strong> {{ product.quantity }}</p>
-
-                <a href="{% url 'core:product_update' product.pk %}" class="btn btn-outline-primary me-2 mt-2 align-middle">Update</a>
-                <form method="post" action="{% url 'core:product_delete' product.pk %}" class="d-inline-block align-middle mt-2">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete product &quot;{{ product.name }}&quot;?');">
-                        Delete
-                    </button>
-                </form>
-            {% else %}
-                <form method="post" action="{% url 'core:orderitem_create' product.pk %}" class="m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-dark mt-2">Add to cart</button>
-                </form>
-            {% endif %}
+        <!-- Action buttons -->
+        <div class="d-flex justify-content-center gap-2 mt-2 mb-2">
+          {% if user.is_staff or user.role|lower == 'seller' %}
+            <a href="{% url 'core:product_update' product.pk %}" class="btn btn-outline-primary btn-sm"
+               style="width: 68.26px;">
+              Edit
+            </a>
+            <form method="post" action="{% url 'core:product_delete' product.pk %}">
+              {% csrf_token %}
+              <button type="submit"
+                      class="btn btn-outline-danger btn-sm"
+                      onclick="return confirm('Remove the product &quot;{{ product.name }}&quot;?');">
+                Delete
+              </button>
+            </form>
+          {% else %}
+            <form method="post" action="{% url 'core:orderitem_create' product.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-add-to-cart">
+                Add to cart
+              </button>
+            </form>
+          {% endif %}
+            <a href="{% url 'core:product_list' %}" class="btn btn-outline-dark btn-sm"
+               style="width: 68.26px;">
+              Back
+            </a>
         </div>
+      </div>
+
     </div>
+  </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const carousel = document.querySelector('#productCarousel');
+    const thumbs = document.querySelectorAll('.thumbs img');
+
+    if (carousel && thumbs.length > 0) {
+      carousel.addEventListener('slid.bs.carousel', function (event) {
+        // remove active from all previews
+        thumbs.forEach(img => img.classList.remove('active'));
+        // add active to current
+        const index = event.to; // active slide index
+        thumbs[index].classList.add('active');
+      });
+    }
+  });
+</script>
 
 {% endblock %}
