@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Product, ProductImage, Shop, Category, Order, OrderItem, Payment
+
+from core.models import Product, ProductImage, Category, Order, OrderItem
 
 
 class ProductImageInline(admin.TabularInline):
@@ -9,11 +10,25 @@ class ProductImageInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'name', 'price', 'quantity', 'is_active')
     inlines = [ProductImageInline]
 
 
-admin.site.register(Shop)
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk', 'user', 'shipping_email', 'status', 'items_amount', 'delivery_amount', 'total_amount',
+        'paid_at', 'shipped_at', 'notified_at', 'delivered_at'
+    )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.exclude(status__in=('pending', 'expired'))
+
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ('order', 'product_name', 'product_quantity', 'product_unit_price', 'product_total_price')
+
+
 admin.site.register(Category)
-admin.site.register(Order)
-admin.site.register(OrderItem)
-admin.site.register(Payment)

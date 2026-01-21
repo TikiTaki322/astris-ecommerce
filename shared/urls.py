@@ -1,8 +1,7 @@
-from django.views.generic import TemplateView
 from django.urls import path
+from django.views.generic import TemplateView
 
 from .views import delete_session_keys
-
 
 app_name = 'shared'
 

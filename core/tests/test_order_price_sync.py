@@ -10,7 +10,7 @@ from django.db.models.signals import post_save
 from accounts.signals import create_specific_profile, create_shop_for_seller
 from accounts.models import CustomerProfile, SellerProfile
 from core.models import Shop, Product, Order, OrderItem
-from core.services.order_price_sync import OrderPriceSyncService
+from core.services.order_item_price_sync import OrderItemPriceSyncService
 
 User = get_user_model()
 
@@ -35,8 +35,7 @@ class OrderPriceSyncServiceTestCase(TestCase):
 
     def setUp(self):
         self.seller_user = User.objects.create_user(
-            username='test_seller',
-            email='seller@mail.ru',
+            email='test_seller@mail.ru',
             email_verified=True,
             password='StrongPas123',
             role=User.Role.SELLER
@@ -98,7 +97,7 @@ class OrderPriceSyncServiceTestCase(TestCase):
         }
 
     def test_compute_order_amount(self):
-        service = OrderPriceSyncService(order=self.order)
+        service = OrderItemPriceSyncService(order=self.order)
         amount = service.get_amount()
 
         order_items = [item.price for item in service.order.items.all()]
@@ -106,7 +105,7 @@ class OrderPriceSyncServiceTestCase(TestCase):
         self.assertEqual(amount, expected_amount)  # Decimal('100.62')
 
     def test_compute_session_amount(self):
-        service = OrderPriceSyncService(session_order=self.session_order)
+        service = OrderItemPriceSyncService(session_order=self.session_order)
         amount = service.get_amount()
 
         session_items = [Decimal(item['price']) for item in service.session_order.values()]
@@ -118,7 +117,7 @@ class OrderPriceSyncServiceTestCase(TestCase):
         self.product_1.price = new_product_price
         self.product_1.save()
 
-        service = OrderPriceSyncService(order=self.order)
+        service = OrderItemPriceSyncService(order=self.order)
         price_diff = service.sync()
         self.assertTrue(price_diff)
 
@@ -130,7 +129,7 @@ class OrderPriceSyncServiceTestCase(TestCase):
         self.product_2.price = new_product_price
         self.product_2.save()
 
-        service = OrderPriceSyncService(session_order=self.session_order)
+        service = OrderItemPriceSyncService(session_order=self.session_order)
         price_diff = service.sync()
         self.assertTrue(price_diff)
 
@@ -138,22 +137,22 @@ class OrderPriceSyncServiceTestCase(TestCase):
         self.assertEqual(cart_item['unit_price'], str(new_product_price))
 
     def test_sync_generic_items_no_price_changes(self):
-        service = OrderPriceSyncService(order=self.order)
+        service = OrderItemPriceSyncService(order=self.order)
         price_diff = service.sync()
         self.assertFalse(price_diff)
 
-        service = OrderPriceSyncService(session_order=self.session_order)
+        service = OrderItemPriceSyncService(session_order=self.session_order)
         price_diff = service.sync()
         self.assertFalse(price_diff)
 
     def test_compute_empty_amount(self):
         """ Defensive testcase cuz logic in views prevent existence an empty order/session """
         order = Order.objects.create(user=self.customer_profile)  # An empty order
-        service = OrderPriceSyncService(order=order)
+        service = OrderItemPriceSyncService(order=order)
         self.assertEqual(service.get_amount(), Decimal('0.00'))
 
-        service = OrderPriceSyncService(order=None)
+        service = OrderItemPriceSyncService(order=None)
         self.assertEqual(service.get_amount(), Decimal('0.00'))
 
-        service = OrderPriceSyncService(session_order={})
+        service = OrderItemPriceSyncService(session_order={})
         self.assertEqual(service.get_amount(), Decimal('0.00'))

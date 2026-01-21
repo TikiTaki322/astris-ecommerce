@@ -1,0 +1,11 @@
+Email change requested
+
+The request was made to change the email address to {{ new_email }},
+to confirm the change, click the link below (valid for 10 minutes):
+
+{{ email_change_url }}
+
+If you did not request this, simply ignore this email.
+
+IP: {{ ip_address }} | User-Agent: {{ user_agent }} | | Time of request : {{ timestamp }}
+Kind regards, Rawpapers support team.

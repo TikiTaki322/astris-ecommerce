@@ -84,14 +84,14 @@
 
       <!-- Image Block -->
       <div>
-        {% if product.has_image %}
+        {% if product.images.count > 0 %}
           <div id="productCarousel" class="carousel slide">
             <div class="carousel-inner rounded">
               {% for image in product.images.all %}
                 <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                  <img src="{{ image.get_image_url }}"
+                  <img src="{{ image.image.url }}"
                        class="d-block w-100"
-                       alt="{{ image.get_alt_text }}"
+                       alt="{{ image.alt_text }}"
                        loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
                 </div>
               {% endfor %}
@@ -108,8 +108,8 @@
               <!-- Previews -->
               <div class="thumbs d-flex justify-content-center">
                 {% for image in product.images.all %}
-                  <img src="{{ image.get_image_url }}"
-                       alt="{{ image.get_alt_text }}"
+                  <img src="{{ image.image.url }}"
+                       alt="{{ image.alt_text }}"
                        data-bs-target="#productCarousel"
                        data-bs-slide-to="{{ forloop.counter0 }}"
                        class="thumb {% if forloop.first %}active{% endif %}">
@@ -131,10 +131,10 @@
       <div class="d-flex flex-column">
 
         <!-- Title -->
-        <div class="d-flex justify-content-start align-items-center mb-3 gap-2">
+        <div class=" mb-3 gap-2">
           <h1 class="product-title mb-1">{{ product.name|capfirst }}</h1>
           {% if product.category %}
-            <div class="text-muted small">{{ product.category.name|capfirst }}</div>
+            <span class="text-muted small">{{ product.category.name|capfirst }}</span>
           {% endif %}
         </div>
 

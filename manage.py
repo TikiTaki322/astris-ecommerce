@@ -2,11 +2,25 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent
 
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'doom_market.settings')
+
+    # if DJANGO_SETTINGS_MODULE not yet specified (for example when running locally), try to load .env.dev
+    if not os.getenv("DJANGO_SETTINGS_MODULE"):
+        for env_file in [".env.dev", ".env"]:
+            env_path = BASE_DIR / env_file
+            if env_path.exists():
+                load_dotenv(env_path)
+                break
+
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', os.getenv("DJANGO_SETTINGS_MODULE", "doom_market.settings.dev"))
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

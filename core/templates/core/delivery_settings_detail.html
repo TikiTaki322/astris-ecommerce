@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<style>
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: box-shadow 0.3s ease;
+    }
+
+    .settings-content p {
+        margin: 0.5rem;
+        font-size: 1.05rem;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+            <div class="card border-black p-4">
+                <div class="card-body">
+                    <h3 class="text-center ">Delivery Settings</h3>
+                </div>
+
+                <div class="settings-content text-center">
+                    <p>Free delivery threshold: <strong>{{ settings.delivery_threshold }} CHF</strong></p>
+                    <p>Base delivery price: <strong>{{ settings.delivery_price }} CHF</strong></p>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 mt-4 mb-1">
+                    <a href="{% url 'core:delivery_settings_update' %}" class="btn btn-outline-primary" style="min-width: 110px;">Update</a>
+                    <a href="{% url 'accounts:backoffice_dashboard' %}" class="btn btn-outline-dark" style="min-width: 110px;">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

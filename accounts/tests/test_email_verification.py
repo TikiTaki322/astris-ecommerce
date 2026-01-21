@@ -12,7 +12,6 @@ class EmailVerificationViewTestCase(TestCase):
     def setUp(self):
         self.session = self.client.session
         self.session['pending_user'] = {
-            'username': 'coralie',
             'email': 'coralie@example.com',
             'password': 'StrongPass123',
             'token': 'sweetBlonde321',

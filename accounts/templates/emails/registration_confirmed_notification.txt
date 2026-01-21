@@ -1,8 +1,0 @@
-Hi {{ username }}, Welcome to Rawpapers!
-
-Your account has been successfully activated on Rawpapers.
-
-You can now log in and start using the service.
-
-Kind regards,
-Rawpapers support team

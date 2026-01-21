@@ -1,39 +1,42 @@
-# Python
-*.pyc
+# Python artifacts
 __pycache__/
-
-.Python
-env/
-venv/
-ENV/
+.pytest_cache/
 *.py[cod]
 *.so
 
-# Django
-*.sqlite3
+# Django migrations cache
+**/migrations/__pycache__/
+
+# Django generated
 *.log
+logs/
 *.pot
-*.pyc
-__pycache__/
-
-# Archive
-build_zip.py
-*.zip
-
-db.sqlite3
 media/
 staticfiles/
 
-# VSCode/PyCharm
+# Docs
+docs/
+
+# Locust
+.locust/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Archive
+*.zip
+
+# Environments
+.env*
+.venv/
+venv/
+ENV/
+
+# IDE
 .vscode/
 .idea/
 
 # OS
-#.DS_Store
-#Thumbs.db
-
-# dotenv
-.env
-
-# Migrations
-**/migrations/__pycache__/
+.DS_Store
+Thumbs.db

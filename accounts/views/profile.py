@@ -1,19 +1,21 @@
-from django.views.generic.edit import View, CreateView, UpdateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, ListView
-from django.urls import reverse_lazy
 from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
 from django.utils.dateparse import parse_date
+from django.views.generic import TemplateView, ListView
+from django.views.generic.edit import View
 
-from shared.permissions.mixins import AuthRequiredMixin, StaffOrSellerRequiredMixin
-from shared.permissions.utils import is_authenticated, is_staff_or_seller
-
-from accounts.models import UserLoginHistory, ShippingInfo
 from accounts.forms import ShippingInfoForm
+from accounts.models import UserLoginHistory
+from shared.permissions.mixins import BackofficeAccessRequiredMixin, AuthRequiredMixin
+from shared.permissions.utils import is_backoffice_member
 
 
-class UserProfileView(AuthRequiredMixin, TemplateView):
-    template_name = 'accounts/profile.html'
+class BackofficeDashboardView(BackofficeAccessRequiredMixin, TemplateView):
+    template_name = 'accounts/backoffice_dashboard.html'
+
+
+class CustomerAccountView(AuthRequiredMixin, TemplateView):
+    template_name = 'accounts/customer_account.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -24,19 +26,15 @@ class UserProfileView(AuthRequiredMixin, TemplateView):
         return context
 
 
-class SellerDashboardView(StaffOrSellerRequiredMixin, TemplateView):
-    template_name = 'accounts/seller_dashboard.html'
-
-
 class UserLoginLogsListView(AuthRequiredMixin, ListView):
     template_name = 'accounts/login_logs_list.html'
     context_object_name = 'login_logs'
 
     def get_queryset(self):
-        qs = UserLoginHistory.objects.all()
+        qs = UserLoginHistory.objects.select_related('user')
 
         user = self.request.user
-        if not is_staff_or_seller(self.request):
+        if not is_backoffice_member(self.request):
             qs = qs.filter(user=user)
 
         date_str = self.request.GET.get('date')
@@ -50,24 +48,25 @@ class UserLoginLogsListView(AuthRequiredMixin, ListView):
 
 class ShippingInfoGenericView(AuthRequiredMixin, View):
     form_class = ShippingInfoForm
-    template_name = 'accounts/shipping_form.html'
+    template_name = 'accounts/shipping_data_form.html'
     success_url = reverse_lazy('payments:review_order')
 
+    def get_shipping(self, user):
+        if hasattr(user.customer_profile, 'shipping_info'):
+            return user.customer_profile.shipping_info
+        return None
+
     def get(self, request):
-        try:
-            shipping = request.user.customer_profile.shipping_info
-            form = self.form_class(instance=shipping)
-        except ShippingInfo.DoesNotExist:
-            form = self.form_class()
+        user = request.user
+        shipping = self.get_shipping(user)
+        form = self.form_class(instance=shipping)
+
         return render(request, self.template_name, {'form': form})
 
     def post(self, request):
         user = request.user
-        try:
-            shipping = user.customer_profile.shipping_info
-            form = self.form_class(request.POST, instance=shipping)
-        except ShippingInfo.DoesNotExist:
-            form = self.form_class(request.POST)
+        shipping = self.get_shipping(user)
+        form = self.form_class(request.POST, instance=shipping)
 
         if form.is_valid():
             shipping_info = form.save(commit=False)

@@ -2,12 +2,15 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from .utils import is_authenticated, is_staff_or_seller
+from .utils import is_authenticated, is_backoffice_member
 
 
-class StaffOrSellerRequiredMixin(UserPassesTestMixin):
+class BackofficeAccessRequiredMixin(UserPassesTestMixin):
+    """
+    Access for any user with elevated privileges: staff/seller/manager/etc
+    """
     def test_func(self):
-        return is_staff_or_seller(self.request)
+        return is_backoffice_member(self.request)
 
     def handle_no_permission(self):
         if not self.test_func():

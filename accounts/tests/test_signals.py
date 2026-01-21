@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
-from accounts.models import CustomerProfile, SellerProfile
+from accounts.models import CustomerProfile
 from core.models import Shop
 
 User = get_user_model()
@@ -10,7 +10,6 @@ User = get_user_model()
 class SignalsTestCase(TestCase):
     def setUp(self):
         self.common_user = User.objects.create_user(
-            username='common_user',
             email='common_user@mail.ru',
             email_verified=True,
             password='StrongPas123'
@@ -22,7 +21,6 @@ class SignalsTestCase(TestCase):
     def test_seller_profile_created_via_admin_panel(self):
         """ Simulation of creating a seller manually through the admin, without email_verified """
         self.panel_seller = User.objects.create_user(
-            username='panel_seller',
             email='panel_seller@mail.ru',
             password='StrongPas123',
             role=User.Role.SELLER

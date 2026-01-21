@@ -1,0 +1,115 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<style>
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: box-shadow 0.3s ease;
+    }
+
+    .form-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .form-label-fixed {
+        width: 80px;
+        text-align: left;
+        margin-bottom: 0;
+        font-size: 1.05rem;
+        white-space: wrap;
+    }
+
+    .form-input {
+        width: auto;
+    }
+
+    .form-input input {
+        width: 100%;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+
+            <!-- Alerts -->
+            {% if info == "password_changed" %}
+              <div class="alert alert-success text-center border-black mb-4">
+                Password has been changed successfully
+              </div>
+            {% elif info == "account_created" %}
+              <div class="alert alert-success text-center border-black mb-4">
+                Email verified. Your account is active now
+              </div>
+            {% elif info == "email_changed" %}
+              <div class="alert alert-success text-center border-black mb-4">
+                Email has been changed successfully
+              </div>
+            {% elif info == "login_required_for_payment" %}
+              <div class="alert alert-warning text-center border-black mb-4">
+                Please log in to proceed with your order
+              </div>
+            {% elif info == "login_required" %}
+              <div class="alert alert-warning text-center border-black mb-4">
+                Please log in to continue
+              </div>
+            {% endif %}
+
+            <div class="card border-black p-4">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">Login</h3>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger text-center">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="form-row mb-3">
+                            <label for="{{ field.id_for_label }}"
+                                   class="form-label-fixed">
+                                {{ field.label }}:
+                            </label>
+
+                            <div class="form-input">
+                                {{ field }}
+                            </div>
+                        </div>
+
+                        {% if field.errors %}
+                            <div class="text-danger small text-center mb-2">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="d-flex flex-column align-items-center gap-2" style="margin-top: 2rem;">
+                        <button type="submit"
+                                class="btn btn-dark"
+                                style="min-width: 150px;">
+                            Login
+                        </button>
+
+                        <a href="{% url 'accounts:password_reset' %}"
+                           class="text-decoration-none small text-muted">
+                            Forgot your password?
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

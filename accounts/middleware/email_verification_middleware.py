@@ -43,14 +43,14 @@ class EmailVerificationMiddleware:
             # Handle dynamic routes via resolve
             dynamic_path = resolve(request.path_info).url_name
         except Resolver404:
-            logger.info(f'❌ Resolver404 invoked with attempt to resolve {request.path_info}')
+            # logger.info(f'Resolver404 invoked with attempt to resolve {request.path_info}')
             return self.get_response(request)
 
         is_static_or_media = any(static_path.startswith(prefix) for prefix in self.exempt_prefixes)
 
         if not is_authenticated(request) and request.session.get('pending_user'):
             if not ((static_path in self.exempt_urls) or (dynamic_path in self.exempt_view_names) or is_static_or_media):
-                logger.info(f'❌ Access blocked: {static_path=} | {dynamic_path=} | {is_static_or_media}')
+                # logger.info(f'Access blocked: {static_path=} | {dynamic_path=} | {is_static_or_media}')
                 return redirect(reverse('accounts:email_sent'))
-            logger.info(f'✅ Access allowed: {static_path=} | {dynamic_path=} | {is_static_or_media}')
+            # logger.info(f'Access allowed: {static_path=} | {dynamic_path=} | {is_static_or_media}')
         return self.get_response(request)

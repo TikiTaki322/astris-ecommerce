@@ -14,6 +14,6 @@ def delete_session_keys(request):
 
     context = {
         'session': bool(deleted_session_keys),
-        'message': f'Session keys {deleted_session_keys} were deleted.' if deleted_session_keys else 'There was no session.'
+        'message': f'Session keys {deleted_session_keys} were deleted' if deleted_session_keys else 'There was no session'
     }
     return render(request, 'shared/delete_session_keys.html', context)

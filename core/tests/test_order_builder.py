@@ -9,7 +9,7 @@ from django.db.models.signals import post_save
 
 from accounts.signals import create_specific_profile, create_shop_for_seller
 from accounts.models import CustomerProfile, SellerProfile
-from core.models import Shop, Product, Order, OrderItem
+from core.models import Product, Order, OrderItem
 from core.services.order_builder import OrderBuilderService
 
 User = get_user_model()
@@ -30,8 +30,7 @@ class OrderBuilderServiceTestCase(TestCase):
 
     def setUp(self):
         self.seller_user = User.objects.create_user(
-            username='test_seller',
-            email='seller@mail.ru',
+            email='test_seller@mail.ru',
             email_verified=True,
             password='StrongPas123',
             role=User.Role.SELLER

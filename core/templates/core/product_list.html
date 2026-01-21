@@ -43,19 +43,23 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transition: box-shadow 0.3s ease;
     }
+
     .card.hover-lift {
-        transition: box-shadow 0.3s ease;
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
+
     .card.hover-lift:hover {
         box-shadow: 0 0.75rem 1.25rem rgba(128, 128, 128, 0.3);
         transform: translateY(-3.5px);
     }
+
     .product-image {
         height: 280px;
         object-fit: cover;
         background-color: #f8f9fa;
         transition: opacity 0.3s ease;
     }
+
     .product-image-placeholder {
         height: 280px;
         display: flex;
@@ -65,13 +69,12 @@
         border-bottom: 1px solid #dee2e6;
         color: #6c757d;
     }
-    .product-card {
-        overflow: hidden;
-    }
+
     .product-image-container {
         position: relative;
         overflow: hidden;
     }
+
     .product-image-hover {
         position: absolute;
         top: 0;
@@ -79,15 +82,32 @@
         opacity: 0;
         transition: opacity 0.3s ease;
     }
+
     .product-image-container.has-second:hover .product-image-hover {
         opacity: 1;
     }
+
     .product-image-container.has-second:hover .product-image-main {
         opacity: 0;
     }
+
+    /* Card Content */
+    .product-card {
+        overflow: hidden;
+    }
+
     .card-content {
         background: linear-gradient(0deg, #fcc3fffa 0%, #381eef85 100%);
         min-height: 140px;
+    }
+
+    .product-title {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.2;
+        min-height: 2.5em;
     }
 
     .action-buttons {
@@ -95,33 +115,35 @@
     }
 
     @media (max-width: 767.98px) {
-        .card-subtitle,
-        .card-text.description {
-            display: none;
-        }
         .action-buttons {
             flex-direction: column !important;
         }
+
         .action-buttons form,
         .action-buttons a,
         .action-buttons button {
             width: 100% !important;
         }
+
         .dual-buttons {
             display: flex;
             gap: 0.4rem;
         }
+
         .dual-buttons form {
             flex: 1;
         }
-        .product-image, .product-image-placeholder {
+
+        .product-image,
+        .product-image-placeholder {
             height: 230px;
         }
     }
 </style>
 
 <div class="container my-5">
-    <!-- Filter Block -->
+
+     <!-- Filter Block -->
     <div class="d-flex justify-content-center mt-2 mt-md-4 mb-4">
         <div class="card border-black p-4 filter-card" style="max-width: 600px; width: 100%;">
             <form method="get" class="row g-2 align-items-center">
@@ -150,7 +172,7 @@
                             <input class="form-check-input" type="checkbox" id="is_active_filter"
                                    name="is_active_filter" value="deactivated"
                                    {% if is_active_filter == "deactivated" %}checked{% endif %}>
-                            <label class="form-check-label" for="is_active_filter">Deactivated</label>
+                            <label class="form-check-label" for="is_active_filter">Hidden only</label>
                         </div>
                     </div>
                 {% endif %}
@@ -173,6 +195,10 @@
         <div class="alert alert-warning mt-4 border-black" role="alert">
             {{ message }}
         </div>
+    {% elif cart_clear_out %}
+        <div class="alert alert-success mt-4 border-black" style="background: #fff" role="alert">
+            {{ message }}
+        </div>
     {% endif %}
 
     {% if products %}
@@ -183,101 +209,102 @@
             {% endif %}
         </div>
 
-        <!-- Grid -->
+        <!-- Product Content -->
         <div class="row row-cols-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
             {% for product in products %}
                 <div class="col">
                     <div class="card border-black h-100 hover-lift product-card">
-                        <!-- Product Image -->
+
+                        <!-- Image -->
                         <div class="product-image-container {% if product.images.count > 1 %}has-second{% endif %}">
-                            {% if product.has_image %}
-                                <img src="{{ product.get_primary_image.get_image_url }}"
+                            {% if product.images.count > 0 %}
+                                <img src="{{ product.get_primary_image.image.url }}"
                                      class="card-img-top product-image product-image-main"
-                                     alt="{{ product.get_primary_image.get_alt_text }}">
+                                     alt="{{ product.get_primary_image.alt_text }}">
 
                                 {% if product.images.count > 1 %}
-                                    <img src="{{ product.get_secondary_image.get_image_url }}"
+                                    <img src="{{ product.get_secondary_image.image.url }}"
                                          class="card-img-top product-image product-image-hover"
-                                         alt="{{ product.get_secondary_image.get_alt_text }}">
+                                         alt="{{ product.get_secondary_image.alt_text }}">
                                 {% endif %}
                             {% else %}
                                 <div class="product-image-placeholder">
-                                    <i class="bi bi-image" style="font-size: 2rem;"></i>
+                                    <i class="bi bi-image fs-3"></i>
                                     <span class="ms-2">No image</span>
                                 </div>
                             {% endif %}
                         </div>
 
-                        <!-- Card body -->
+                        <!-- Body -->
                         <div class="card-body card-content d-flex flex-column p-3">
-                            <h5 class="card-title mb-1" style="color: #2c3e50;">{{ product.name }}</h5>
-                            <h6 class="card-subtitle mb-2" style="color: #5a6c7d;">{{ product.category.name|default:"—" }}</h6>
-                            <p class="card-text description flex-grow-1 mb-2" style="color: #34495e; font-size: 0.9rem;">
-                                {{ product.description|truncatechars:80|default:"" }}
-                            </p>
-                            <p class="card-text mb-2"><strong style="color: #2c3e50;">{{ product.price }} CHF</strong></p>
+
+                            <div class="mb-1">
+                                <h5 class="product-title mb-2">{{ product.name }}</h5>
+                                <span ><strong>{{ product.price }} CHF</strong></span>
+                            </div>
 
                             {% if user.is_staff or user.role|lower == 'seller' %}
-                                <p class="card-text mb-2" style="color: #5a6c7d; font-size: 0.9rem;">
+                                <p class="mb-2" style="color: #5a6c7d; font-size: 0.9rem;">
                                     Available: {{ product.quantity }}
                                 </p>
                             {% endif %}
 
-                            <!-- Buttons -->
-                            <div class="d-flex justify-content-between action-buttons mt-1">
-                                {% if user.is_staff or user.role|lower == 'seller' %}
-                                    <a href="{% url 'core:product_detail' product.pk %}"
-                                       class="btn btn-view-product btn-sm flex-fill">View</a>
-                                    <div class="d-flex gap-1 flex-fill justify-content-end dual-buttons">
-                                        <form method="post" action="{% url 'core:product_toggle_visibility' product.pk %}" class="m-0">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="category" value="{{ selected_category }}">
-                                            <input type="hidden" name="stock_filter" value="{{ request.GET.stock_filter }}">
-                                            <input type="hidden" name="is_active_filter" value="{{ request.GET.is_active_filter }}">
-                                            <button type="submit"
-                                                    class="btn {% if product.is_active %}btn-deactivate-product{% else %}btn-activate-product{% endif %} btn-sm w-100">
-                                                {% if product.is_active %}Deactivate{% else %}Activate{% endif %}
-                                            </button>
-                                        </form>
+                            <!-- Action Buttons -->
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between action-buttons mt-1">
+                                    {% if user.is_staff or user.role|lower == 'seller' %}
+                                        <a href="{% url 'core:product_detail' product.pk %}"
+                                           class="btn btn-view-product btn-sm flex-fill">
+                                            View
+                                        </a>
 
-                                        <form method="post" action="{% url 'core:product_delete' product.pk %}" class="m-0">
+                                        <div class="d-flex gap-1 flex-fill justify-content-end dual-buttons">
+
+                                            <form method="post" action="{% url 'core:product_toggle_visibility' product.pk %}" class="m-0">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="category" value="{{ selected_category }}">
+                                                <input type="hidden" name="stock_filter" value="{{ request.GET.stock_filter }}">
+                                                <input type="hidden" name="is_active_filter" value="{{ request.GET.is_active_filter }}">
+                                                <button type="submit" class="btn btn-sm w-100
+                                                    {% if product.is_active %}btn-deactivate-product
+                                                    {% else %}btn-activate-product
+                                                    {% endif %}">
+                                                    {% if product.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                </button>
+                                            </form>
+
+                                            <form method="post" action="{% url 'core:product_delete' product.pk %}" class="m-0">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="category" value="{{ selected_category }}">
+                                                <input type="hidden" name="stock_filter" value="{{ request.GET.stock_filter }}">
+                                                <input type="hidden" name="is_active_filter" value="{{ request.GET.is_active_filter }}">
+                                                <button type="submit" class="btn btn-delete-product btn-sm w-100"
+                                                        onclick="return confirm('Delete product &quot;{{ product.name }}&quot;?');">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    {% else %}
+                                        <form method="post" action="{% url 'core:orderitem_create' product.pk %}" class="m-0 flex-fill">
                                             {% csrf_token %}
-                                            <input type="hidden" name="category" value="{{ selected_category }}">
-                                            <input type="hidden" name="stock_filter" value="{{ request.GET.stock_filter }}">
-                                            <input type="hidden" name="is_active_filter" value="{{ request.GET.is_active_filter }}">
-                                            <button type="submit" class="btn btn-delete-product btn-sm w-100"
-                                                    onclick="return confirm('Delete product &quot;{{ product.name }}&quot;?');">
-                                                Delete
+                                            <button type="submit" class="btn btn-add-to-cart btn-sm w-100">
+                                                Add to cart
                                             </button>
                                         </form>
-                                    </div>
-                                {% else %}
-                                    <form method="post" action="{% url 'core:orderitem_create' product.pk %}" class="m-0 flex-fill">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-add-to-cart btn-sm w-100">
-                                            Add to cart
-                                        </button>
-                                    </form>
-                                    <a href="{% url 'core:product_detail' product.pk %}" class="btn btn-view-product btn-sm">View</a>
-                                {% endif %}
+                                        <a href="{% url 'core:product_detail' product.pk %}" class="btn btn-view-product btn-sm">View</a>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             {% endfor %}
         </div>
 
     {% else %}
-        <div class="card card-body border-black text-center mx-auto mt-4" style="max-width: 500px;">
-            <h4 class="mb-3 mt-2">There have been no products yet.</h4>
-                <div class="d-flex justify-content-center gap-2 mt-2 mb-1">
-                    {% if user.is_staff or user.role|lower == 'seller' %}
-                        <a href="{% url 'core:product_create' %}" class="btn btn-outline-primary">Add Product</a>
-                        <a href="{% url 'accounts:seller_dashboard' %}" class="btn btn-outline-secondary">To Dashboard</a>
-                    {% else %}
-                        <a href="{% url 'core:product_list' %}" class="btn btn-outline-secondary">To Store</a>
-                    {% endif %}
-                </div>
+        <div class="card card-body border-black text-center mx-auto mt-4" style="max-width: 600px;">
+            <h5 class="mb-2 mt-2">There have been no products yet</h5>
         </div>
     {% endif %}
 </div>

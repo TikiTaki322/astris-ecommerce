@@ -1,64 +1,57 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm
 from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
-from .models import ShippingInfo
+from accounts.models import ShippingInfo
 
 User = get_user_model()
 
 
-class UserRegistrationForm(UserCreationForm):
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
-            'placeholder': 'Email',
-            'autocomplete': 'email',
-            'name': 'email',
-        }),
-        label='Email',
-    )
-    nickname = forms.CharField(
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Nickname',
-        }),
-        label='Nickname',
-    )
-    username = forms.CharField(widget=forms.HiddenInput(), required=False)
+class UserRegistrationForm(forms.ModelForm):
+    email = forms.EmailField(label='Email', widget=forms.EmailInput)
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Repeat password', widget=forms.PasswordInput)
 
     class Meta:
         model = User
-        fields = ['email', 'nickname', 'username', 'password1', 'password2']
+        fields = ('email',)
 
     def clean_email(self):
-        email = self.cleaned_data.get('email')
+        email = self.cleaned_data.get('email').lower().strip()
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError(f'Email "{email}" is already in use.')
+            raise forms.ValidationError(f'Email "{email}" already in use')
         return email
 
-    def clean_nickname(self):
-        # Bypassing browser autofill bullshit: map a fake 'nickname' field to 'username'
-        # so password managers save email instead of username
-        nickname = self.cleaned_data.get('nickname')
-        if User.objects.filter(username=nickname).exists():
-            raise forms.ValidationError(f'Nickname "{nickname}" is already in use.')
-        return nickname
-
     def clean(self):
-        cleaned_data = super().clean()
-        cleaned_data['username'] = cleaned_data.get('nickname')
-        return cleaned_data
+        cleaned = super().clean()
+
+        p1 = cleaned.get('password1')
+        p2 = cleaned.get('password2')
+
+        if p1 and p2:
+            if p1 != p2:
+                raise forms.ValidationError("Passwords don't match")
+
+            try:
+                validate_password(p1)
+            except ValidationError as exc:
+                self.add_error('password1', exc)
+
+        return cleaned
 
 
 class UserLoginForm(AuthenticationForm):
     username = forms.EmailField(
         widget=forms.EmailInput(attrs={
             'autofocus': True,
-            'placeholder': 'Email',
             'autocomplete': 'email',
         }),
         label='Email',
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': 'Password'}),
+        widget=forms.PasswordInput,
         label='Password',
     )
 
@@ -69,36 +62,67 @@ class UserPasswordCheckForm(forms.Form):
         label='Password',
     )
 
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        if not self.user.check_password(password):
+            raise forms.ValidationError('Wrong password')
+        return password
+
 
 class UserPasswordResetForm(forms.Form):
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
-            'autofocus': True,
-            'placeholder': 'Email',
-            'autocomplete': 'email',
-        }),
-        label='Email',
-    )
+    email = forms.EmailField(label='Email', widget=forms.EmailInput)
 
 
 class UserSetPasswordForm(SetPasswordForm):
-    pass
+    def clean_new_password1(self):
+        password = self.cleaned_data.get('new_password1')
+        if self.user.check_password(password):
+            raise forms.ValidationError('The new password cannot be the same as the old one')
+
+        return password
+
+    def clean(self):
+        cleaned = super().clean()
+        password = cleaned.get('new_password1')
+
+        try:
+            validate_password(password)
+        except ValidationError as exc:
+            self.add_error('new_password1', exc)
+
+        return cleaned
+
+
 
 
 class UserEmailUpdateForm(forms.Form):
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': 'Password'}),
+        widget=forms.PasswordInput,
         label='Password',
     )
     new_email = forms.EmailField(
-        widget=forms.EmailInput(attrs={'placeholder': 'New email'}),
+        widget=forms.EmailInput,
         label='New email',
     )
+
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        if not self.user.check_password(password):
+            raise forms.ValidationError('Wrong password')
+        return password
 
     def clean_new_email(self):
         new_email = self.cleaned_data.get('new_email')
         if User.objects.filter(email=new_email).exists():
-            raise forms.ValidationError(f'Email "{new_email}" is already in use.')
+            raise forms.ValidationError(f'Email "{new_email}" already in use')
         return new_email
 
 

@@ -8,39 +8,20 @@
         transition: box-shadow 0.3s ease;
     }
 
-    /* Updated disabled button styles - более минималистичный серый с border-black */
     .btn-disabled-custom {
         background-color: #e9ecef !important;
         border-color: #000000 !important; /* border-black */
-        color: #6c757d !important;
+        color: #8a9ba8 !important;
         cursor: not-allowed !important;
         opacity: 0.8 !important;
         font-weight: 510 !important;
     }
 
-    .btn-disabled-custom:hover {
-        background-color: #e9ecef !important;
-        border-color: #000000 !important; /* border-black */
-        color: #6c757d !important;
-    }
-
-    .btn-disabled-custom-delivered {
-        color: #8e0ee3 !important;
-    }
-
-    .btn-disabled-custom-notified {
-        color: #8a9ba8 !important;
-    }
-
-    /* Desktop styles - как было */
+    /* Desktop styles */
     @media (min-width: 768px) {
         .btn-group-desktop {
-            gap: 0.5rem;
-        }
-
-        .order-header-desktop {
-            flex-direction: row;
             align-items: center;
+            gap: 0.5rem;
         }
 
         .order-info-desktop {
@@ -49,33 +30,32 @@
         }
     }
 
-    /* Mobile styles - ПОЛНОСТЬЮ ПЕРЕПИСАННЫЕ */
+    /* Mobile styles */
     @media (max-width: 767.98px) {
         .card-mobile {
             border-radius: 8px !important;
         }
 
         .order-header-mobile {
-            flex-direction: column;
-            gap: 1rem;
-            padding: 0.75rem;
+            padding: 0.3rem;
+        }
+
+        .card-header-mobile {
+            max-height: 100px;
         }
 
         .order-info-mobile {
             text-align: left;
             font-size: 0.95rem;
             width: 100%;
-            padding: 0;
         }
 
-        /* Мобильные кнопки - ИСПРАВЛЕНО */
+        /* Mobile buttons */
         .mobile-buttons-container {
             display: flex;
             justify-content: center;
             gap: 0.6rem;
             width: 100%;
-            margin-top: 1rem;
-            padding: 0 1rem;
         }
 
         .btn-mobile {
@@ -90,53 +70,31 @@
             justify-content: center;
             flex-shrink: 0;
         }
-
-        /* Стили для collapse на мобилке */
-        .mobile-collapse {
-            margin-top: 0;
-        }
-
-        .mobile-collapse .card-body {
-            padding: 1rem;
-            background-color: #fafafa;
-            border-radius: 0 0 8px 8px;
-        }
-
-        /* Мобильная информация о заказе */
-        .mobile-order-info {
-            line-height: 1.4;
-        }
-
-        .mobile-order-info .order-meta {
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .mobile-order-info .order-main {
-            font-size: 1rem;
-        }
     }
 
-    /* Общие улучшения */
     .order-amount {
         font-weight: 600;
     }
 
-    /* Цвета amount в зависимости от статуса */
-    .order-amount-shipped {
-        color: #198754; /* зеленый для shipped */
+    .order-amount-pending {
+        color: #8a9ba8; /* gray-blue for pending */
     }
 
     .order-amount-paid {
-        color: #ed9b02; /* оранжевый для paid */
+        color: #ed9b02; /* orange for paid */
     }
+    /* mb have to swap with light-green - #90EE90 */
 
-    .order-amount-pending {
-        color: #8a9ba8; /* серо-голубой для pending */
+    .order-amount-shipped {
+        color: #198754; /* green for shipped */
     }
 
     .order-amount-delivered {
-        color: #8e0ee3; /* фиолетовый для delivered */
+        color: #8e0ee3; /* purple for delivered */
+    }
+
+    .order-amount-expired {
+        color: #DE3A51; /* red for expired */
     }
 
     .order-status {
@@ -198,8 +156,9 @@
         <div id="ordersAccordion">
             {% for order in orders %}
                 <div class="card border-black mb-3 card-mobile">
-                    <div class="card-header" id="heading{{ forloop.counter }}">
-                        <div class="d-flex order-header-desktop order-header-mobile">
+                    <div id="heading{{ forloop.counter }}" class="card-header
+                        {% if order.status == 'pending' or order.status == 'expired' or order.status == 'delivered' %}card-header-mobile{% endif %}">
+                        <div class="d-flex">
                             <!-- Order Info Button -->
                             <button class="btn btn-link text-dark text-decoration-none text-start p-0 order-info-desktop order-info-mobile" type="button"
                                 data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}"
@@ -211,23 +170,31 @@
                                         <span class="text-muted">{{ order.created_at|date:"M j, H:i" }}</span>
                                         <span class="text-muted">•</span>
                                         <span>Order #{{ order.pk }}{% if user.is_staff or user.role|lower == 'seller' %}
-                                            by <strong>{{ order.user }}{% endif %}</strong></span>
+                                            by <strong>{{ order.user.user.email }}{% endif %}</strong>
+                                        </span>
                                     </div>
                                     <div class="d-flex flex-wrap align-items-center gap-2">
                                         <span class="order-status">{{ order.status|capfirst }}:</span>
-                                        <span class="order-amount order-amount-{{ order.status }}">{{ order.amount }} CHF</span>
+                                        <span class="order-amount order-amount-{{ order.status }}">{{ order.total_amount }} CHF</span>
                                     </div>
                                 </div>
 
                                 <!-- Mobile version -->
-                                <div class="mobile-order-info d-block d-md-none">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="fw-bold">Order #{{ order.pk }}</span>
+                                <div class="d-block d-md-none pt-1 pb-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong>Order #{{ order.pk }}</strong>
                                         <span class="text-muted">{{ order.created_at|date:"M j, H:i" }}</span>
                                     </div>
+
+                                    {% if user.is_staff or user.role|lower == "seller" %}
+                                        <div class="mb-1">
+                                            <small>by {{ order.user.user.email }}</small>
+                                        </div>
+                                    {% endif %}
+
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="order-status">{{ order.status|capfirst }}:</span>
-                                        <span class="order-amount order-amount-{{ order.status }}">{{ order.amount }} CHF</span>
+                                        <span class="order-amount order-amount-{{ order.status }}">{{ order.total_amount }} CHF</span>
                                     </div>
                                 </div>
                             </button>
@@ -267,55 +234,51 @@
                                                     </div>
                                                   </div>
                                                 </div>
-
                                             {% elif order.status == 'shipped' %}
-                                                <button type="submit" class="btn btn-outline-dark" style="width: 145px;">
-                                                    Return to paid
-                                                </button>
+                                                {% if order.notified_at %}
+                                                    <button class="btn btn-disabled-custom" disabled style="width: 145px;">
+                                                        Shipped
+                                                    </button>
+                                                {% else %}
+                                                    <button type="submit" class="btn btn-outline-dark" style="width: 145px;">
+                                                        Return to paid
+                                                    </button>
+                                                {% endif %}
                                             {% endif %}
                                         </form>
                                     {% endif %}
 
                                     <!-- Notification Button -->
-                                    <form method="post" action="{% url 'core:order_notify_shipped' order.pk %}" class="d-inline">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="status" value="{{ selected_status }}">
-                                        <input type="hidden" name="date" value="{{ request.GET.date }}">
-                                        {% if order.delivered_at %}
-                                            <button type="submit" class="btn btn-disabled-custom btn-disabled-custom-delivered" disabled style="min-width: 110px;">
-                                                Delivered
-                                            </button>
-                                        {% elif order.notified_at %}
-                                            <button class="btn btn-disabled-custom btn-disabled-custom-notified" disabled style="min-width: 110px;">
-                                                Notified
-                                            </button>
-                                        {% else %}
-                                            {% if order.status == 'paid' or order.status == 'shipped' %}
+                                    {% if order.status == 'paid' or order.status == 'shipped' %}
+                                        <form method="post" action="{% url 'core:order_notify_shipped' order.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="{{ selected_status }}">
+                                            <input type="hidden" name="date" value="{{ request.GET.date }}">
+                                            {% if order.notified_at %}
+                                                <button class="btn btn-disabled-custom" disabled style="min-width: 110px;">
+                                                    Notified
+                                                </button>
+                                            {% else %}
                                                 <button type="submit" style="min-width: 110px;"
                                                         class="btn {% if order.status == 'paid' %}btn-outline-secondary
                                                         {% elif order.status == 'shipped' %}btn-outline-success{% endif %}">
                                                     Notify
                                                 </button>
                                             {% endif %}
-                                        {% endif %}
-                                    </form>
+                                        </form>
+                                    {% endif %}
                                 </div>
-                            {% elif user.role|lower == "customer" %}
+                            {% elif user.role|lower == "customer" and order.status == 'shipped' %}
                             <!-- "Mark as Delivered" Button for Customers -->
                                 <div class="d-none d-md-flex btn-group-desktop">
                                     <form method="post" action="{% url 'core:order_delivered' order.pk %}" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="status" value="{{ selected_status }}">
                                         <input type="hidden" name="date" value="{{ request.GET.date }}">
-                                        {% if order.status == 'delivered' %}
-                                            <button type="submit" class="btn btn-disabled-custom btn-disabled-custom-delivered" disabled style="min-width: 110px;">
-                                                Delivered
-                                            </button>
-                                        {% elif order.status == 'shipped' %}
-                                            <button type="submit" class="btn btn-outline-success" style="min-width: 110px;">
-                                                Mark as Delivered
-                                            </button>
-                                        {% endif %}
+
+                                        <button type="submit" class="btn btn-outline-success" style="min-width: 110px;">
+                                            Mark as Delivered
+                                        </button>
                                     </form>
                                 </div>
                             {% endif %}
@@ -323,7 +286,7 @@
 
                         <!-- Mobile buttons - Distinct branch -->
                         {% if user.is_staff or user.role|lower == 'seller' %}
-                            <div class="d-md-none mobile-buttons-container mb-3">
+                            <div class="d-md-none mobile-buttons-container mb-2 mt-2">
                                 <!-- Status Change Button for Staff/Seller -->
                                 {% if order.status == 'paid' or order.status == 'shipped' %}
                                     <form method="post" action="{% url 'core:order_change_status' order.pk %}">
@@ -355,32 +318,31 @@
                                                 </div>
                                               </div>
                                             </div>
-
                                         {% elif order.status == 'shipped' %}
-                                            <button type="submit" class="btn btn-outline-dark btn-mobile"
-                                                    style="width: 145px;">
-                                                Return to paid
-                                            </button>
+                                            {% if order.notified_at %}
+                                                <button class="btn btn-disabled-custom btn-mobile" disabled style="width: 145px;">
+                                                    Shipped
+                                                </button>
+                                            {% else %}
+                                                <button type="submit" class="btn btn-outline-dark btn-mobile" style="width: 145px;">
+                                                    Return to paid
+                                                </button>
+                                            {% endif %}
                                         {% endif %}
                                     </form>
                                 {% endif %}
 
                                 <!-- Notification Button -->
-                                <form method="post" action="{% url 'core:order_notify_shipped' order.pk %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="status" value="{{ selected_status }}">
-                                    <input type="hidden" name="date" value="{{ request.GET.date }}">
-
-                                    {% if order.delivered_at %}
-                                        <button type="submit" class="btn btn-disabled-custom btn-disabled-custom-delivered btn-mobile" disabled>
-                                            Delivered
-                                        </button>
-                                    {% elif order.notified_at %}
-                                        <button class="btn btn-disabled-custom btn-disabled-custom-notified btn-mobile" disabled>
-                                            Notified
-                                        </button>
-                                    {% else %}
-                                        {% if order.status == 'paid' or order.status == 'shipped' %}
+                                {% if order.status == 'paid' or order.status == 'shipped' %}
+                                    <form method="post" action="{% url 'core:order_notify_shipped' order.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="{{ selected_status }}">
+                                        <input type="hidden" name="date" value="{{ request.GET.date }}">
+                                        {% if order.notified_at %}
+                                            <button class="btn btn-disabled-custom btn-mobile" disabled>
+                                                Notified
+                                            </button>
+                                        {% else %}
                                             <button type="submit"
                                                     class="btn btn-mobile
                                                     {% if order.status == 'paid' %}btn-outline-secondary
@@ -388,25 +350,21 @@
                                                 Notify
                                             </button>
                                         {% endif %}
-                                    {% endif %}
-                                </form>
+                                    </form>
+                                {% endif %}
                             </div>
-                        {% elif user.role|lower == "customer" %}
+
+                        {% elif user.role|lower == "customer" and order.status == 'shipped' %}
                         <!-- Mark as Delivered Button -->
-                            <div class="d-md-none mobile-buttons-container mb-3">
+                            <div class="d-md-none mobile-buttons-container mb-2 mt-2">
                                 <form method="post" action="{% url 'core:order_delivered' order.pk %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="status" value="{{ selected_status }}">
                                     <input type="hidden" name="date" value="{{ request.GET.date }}">
-                                    {% if order.status == 'delivered' %}
-                                        <button type="submit" class="btn btn-disabled-custom btn-disabled-custom-delivered btn-mobile" disabled>
-                                            Delivered
-                                        </button>
-                                    {% elif order.status == 'shipped' %}
-                                        <button type="submit" class="btn btn-outline-success btn-mobile">
-                                            Mark as Delivered
-                                        </button>
-                                    {% endif %}
+
+                                    <button type="submit" class="btn btn-outline-success btn-mobile">
+                                        Mark as Delivered
+                                    </button>
                                 </form>
                             </div>
                         {% endif %}
@@ -419,48 +377,60 @@
                             <div class="row">
                                 <h5 class="mb-3 mt-2">Order Details:</h5>
                                 <div class="col-md-6">
-                                    <p><strong>Username:</strong> {{ order.user }}</p>
-                                    <p><strong>Email:</strong> {{ order.shipping_email|default:"—" }}</p>
-                                    <p><strong>Order Status:</strong> {{ order.status|capfirst }}</p>
-                                    {% if user.is_staff or user.role|lower == 'seller' %}
-                                        <p><strong>Payment Status:</strong> {{ order.payment_status|default:"—"|capfirst }}</p>
+                                    {% if order.status != 'expired' and order.status != 'pending' %}
+                                        <p><strong>Email:</strong> {{ order.shipping_email|default:"—" }}</p>
+                                        <p><strong>Order Status:</strong> {{ order.status|capfirst }}</p>
+                                        <p><strong>Payment Status:</strong> {{ order.latest_payment.payment_status|default:"—"|capfirst }}</p>
+                                        <p><strong>Payment Method:</strong> {{ order.latest_payment.payment_method|default:"—"|capfirst }}</p>
+                                    {% else %}
+                                        <p><strong>Order Status:</strong> {{ order.status|capfirst }}</p>
                                     {% endif %}
-                                    <p><strong>Payment Method:</strong> {{ order.payment_method|default:"—"|capfirst }}</p>
                                 </div>
+
                                 {% if user.is_staff or user.role|lower == 'seller' %}
-                                    <div class="col-md-6">
-                                        <p><strong>Paid at:</strong>
-                                            {% if order.paid_at %}
-                                                {{ order.paid_at|date:"Y-m-d H:i" }}
-                                            {% else %}
-                                                <span class="text-muted">Order is not paid yet</span>
-                                            {% endif %}
-                                        </p>
+                                    {% if order.status == 'expired' %}
+                                        <div class="col-md-6">
+                                            <p><strong>Expired at:</strong> {{ order.expired_at|date:"Y-m-d H:i" }}</p>
+                                        </div>
+                                    {% elif order.status == 'pending' %}
+                                        <div class="col-md-6">
+                                            <p>Expires within 24 hours</p>
+                                        </div>
+                                    {% else %}
+                                        <div class="col-md-6">
+                                            <p><strong>Paid at:</strong>
+                                                {% if order.paid_at %}
+                                                    {{ order.paid_at|date:"Y-m-d H:i" }}
+                                                {% else %}
+                                                    <span class="text-muted">Order is not paid yet</span>
+                                                {% endif %}
+                                            </p>
 
-                                        <p><strong>Shipped at:</strong>
-                                            {% if order.shipped_at %}
-                                                {{ order.shipped_at|date:"Y-m-d H:i" }}
-                                            {% else %}
-                                                <span class="text-muted">Order is not shipped yet</span>
-                                            {% endif %}
-                                        </p>
+                                            <p><strong>Shipped at:</strong>
+                                                {% if order.shipped_at %}
+                                                    {{ order.shipped_at|date:"Y-m-d H:i" }}
+                                                {% else %}
+                                                    <span class="text-muted">Order is not shipped yet</span>
+                                                {% endif %}
+                                            </p>
 
-                                        <p><strong>Notified at:</strong>
-                                            {% if order.notified_at %}
-                                                {{ order.notified_at|date:"Y-m-d H:i" }}
-                                            {% else %}
-                                                <span class="text-muted">Customer is not notified yet</span>
-                                            {% endif %}
-                                        </p>
+                                            <p><strong>Notified at:</strong>
+                                                {% if order.notified_at %}
+                                                    {{ order.notified_at|date:"Y-m-d H:i" }}
+                                                {% else %}
+                                                    <span class="text-muted">Customer is not notified yet</span>
+                                                {% endif %}
+                                            </p>
 
-                                        <p><strong>Delivered at:</strong>
-                                            {% if order.delivered_at %}
-                                                {{ order.delivered_at|date:"Y-m-d H:i" }}
-                                            {% else %}
-                                                <span class="text-muted">Order is not delivered yet</span>
-                                            {% endif %}
-                                        </p>
-                                    </div>
+                                            <p><strong>Delivered at:</strong>
+                                                {% if order.delivered_at %}
+                                                    {{ order.delivered_at|date:"Y-m-d H:i" }}
+                                                {% else %}
+                                                    <span class="text-muted">Order is not delivered yet</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    {% endif %}
                                 {% endif %}
                             </div>
 
@@ -506,10 +476,10 @@
                                         <li class="list-group-item d-flex justify-content-between align-items-start">
                                             <div class="flex-grow-1 me-3" style="min-width: 0;">
                                                 <span class="d-block">{{ item.product_name }}</span>
-                                                <small class="text-muted">Quantity: {{ item.product_quantity }}</small>
+                                                <small>{{ item.product_quantity }} × {{ item.product_unit_price }} CHF</small>
                                             </div>
                                             <div class="text-end" style="min-width: 80px; flex-shrink: 0;">
-                                                <span class="fw-bold text-nowrap">{{ item.product_total_price }} CHF</span>
+                                                <span class="text-nowrap">{{ item.product_total_price }} CHF</span>
                                             </div>
                                         </li>
                                     {% empty %}
@@ -517,6 +487,27 @@
                                     {% endfor %}
                                 </ul>
                             </div>
+
+                            <div class="mt-4">
+                                <h5 class="mb-3">Order Summary:</h5>
+                                <ul class="list-group mb-3">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Subtotal</span>
+                                        <span>{{ order.items_amount }} CHF</span>
+                                    </li>
+
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Shipping</span>
+                                        <span>{{ order.delivery_amount}} CHF</span>
+                                    </li>
+
+                                    <li class="list-group-item d-flex justify-content-between fw-bold">
+                                        <span>Total</span>
+                                        <span>{{ order.total_amount }} CHF</span>
+                                    </li>
+                                </ul>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -525,18 +516,16 @@
 
     {% else %}
         <!-- No Orders block -->
-        <div class="container mt-4">
             <div class="card border-black text-center mx-auto" style="max-width: 500px;">
                 <div class="card-body">
-                    <h4 class="text-black mb-3">There have been no orders yet.</h4>
+                    <h4 class="mb-3 mt-2">There have been no orders yet.</h4>
                     {% if user.is_staff or user.role|lower == 'seller' %}
-                        <a href="{% url 'accounts:seller_dashboard' %}" class="btn btn-outline-secondary mt-3">Back to dashboard</a>
+                        <a href="{% url 'accounts:backoffice_dashboard' %}" class="btn btn-outline-dark mt-2 mb-1">Back to Dashboard</a>
                     {% else %}
-                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary mt-3">Back to profile</a>
+                        <a href="{% url 'accounts:customer_account' %}" class="btn btn-outline-dark mt-2 mb-1">Back to My Account</a>
                     {% endif %}
                 </div>
             </div>
-        </div>
     {% endif %}
 </div>
 

@@ -1,0 +1,104 @@
+# docker-compose -f docker-compose.dev.yml up -d --build
+
+# docker exec -it petit_django-backend-1 bash
+# locust -f /app/locustfile.py --host=http://localhost:8000
+services:
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file:
+      - .env.dev
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # had to complement pg_hba.conf with new entries (e.g. Windows subnet and localhost addresses) for connecting to local Postgres
+    command: >
+      bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+      - "8089:8089"  # Locust port
+    depends_on:
+#      db:
+#        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+#  db:
+#    image: postgres:15
+#    restart: always
+#    env_file:
+#      - .env.dev
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+#      interval: 5s
+#      timeout: 3s
+#      retries: 5
+#    volumes:
+#      - pgdata:/var/lib/postgresql/data
+#    ports:
+#      - "5432:5432"
+
+  redis:
+    image: redis:7
+    restart: always
+    env_file:
+      - .env.dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    command: [
+      "redis-server",
+      "--appendonly", "yes",
+      "--appendfsync", "everysec"
+    ]
+    volumes:
+      - redisdata:/data
+    ports:
+      - "6379:6379"
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file:
+      - .env.dev
+    command: celery -A doom_market worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file:
+      - .env.dev
+    command: celery -A doom_market beat -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file:
+      - .env.dev
+    command: celery -A doom_market flower --broker=redis://redis:6379/0 --port=5555
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    ports:
+      - "5555:5555"
+
+volumes:
+#  pgdata:
+  redisdata:

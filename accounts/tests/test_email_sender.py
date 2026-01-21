@@ -12,8 +12,6 @@ class EmailSenderServiceTestCase(TestCase):
         mock_post.return_value.text = 'Accepted'
 
         response = self.client.post(reverse('accounts:register'), {
-            'username': 'testuser',
-            'nickname': 'testuser',
             'email': 'testmail@example.com',
             'password1': 'StrongPass123',
             'password2': 'StrongPass123'

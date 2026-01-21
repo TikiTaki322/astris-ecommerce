@@ -8,115 +8,155 @@
     transition: box-shadow 0.3s ease;
   }
 
-  .card.hover-lift {
-    transition: box-shadow 0.3s ease;
+  .payment-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
   }
 
-  .card.hover-lift:hover {
-    box-shadow: 0 0.75rem 1.25rem rgba(128, 128, 128, 0.3);
-    transform: translateY(-3.5px);
+  .payment-option {
+    cursor: pointer;
+    border: 2px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
   }
 
-  .order-item {
-    border-bottom: 1px solid #dee2e6;
-    padding: 0.75rem 0;
+  .payment-option:hover {
+    border-color: #adb5bd;
   }
 
-  .order-item:last-child {
-    border-bottom: none;
+  .payment-option input:checked + strong {
+    color: #198754;
   }
 
-  .price-nowrap {
-    white-space: nowrap;
-    min-width: 80px;
+  .payment-option input:checked {
+    display: none;
   }
 
-  @media (max-width: 575.98px) {
-    .order-item-mobile {
-      flex-direction: column;
-      align-items: flex-start !important;
-    }
-
-    .order-item-mobile .text-end {
-      align-self: flex-end;
-      margin-top: 0.25rem;
-    }
+  .payment-option:has(input:checked) {
+    border-color: #198754;
+    background-color: #f8fff9;
   }
+
 </style>
 
 <div class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-12 col-sm-10 col-md-8 col-lg-7">
-      <div class="card border-black p-4">
-        <div class="card-body text-center">
-          <h3 class="mb-4">Confirm your order</h3>
-        </div>
-
-        <!-- Shipping Information -->
-        <div class="mb-4">
-          <h5 class="mb-3">
-            Shipping to:
-          </h5>
-          <div class="ps-3">
-            <p class="mb-1">
-              <strong>{{ shipping_info.first_name }} {{ shipping_info.last_name }}</strong>
-            </p>
-            <p class="mb-2 text-muted">
-              {{ shipping_info.email }}
-            </p>
-            <p class="mb-1">{{ shipping_info.street }} {{ shipping_info.house_number }}</p>
-            <p class="mb-1">{{ shipping_info.city }}, {{ shipping_info.country }}</p>
-            <p class="mb-0 text-muted">Postal code: {{ shipping_info.postal_code }}</p>
-          </div>
-        </div>
-
-        <hr class="my-4">
-
-        <!-- Order Items -->
-        <div class="mb-4">
-          <h5 class="mb-3">
-            <i class="bi bi-bag"></i> Order items:
-          </h5>
-          <div class="ps-3">
-            {% for item in order.items.all %}
-              <div class="order-item">
-                <div class="d-flex justify-content-between align-items-center order-item-mobile">
-                  <div class="flex-grow-1 me-3">
-                    <span class="fw-medium">{{ item.product_name }}</span>
-                    <span class="text-muted ms-2">× {{ item.product_quantity }} pcs</span>
-                  </div>
-                  <div class="text-end price-nowrap">
-                    <span class="fw-medium">{{ item.product_total_price }} CHF</span>
-                  </div>
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-
-        <hr class="my-4">
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h5 class="mb-0">Total:</h5>
-          <h4 class="mb-0 fw-bold">{{ order.amount }} CHF</h4>
-        </div>
-
-        <div class="card-body text-center">
-
-          <form method="post" action="{% url 'payments:start_payment' order.pk %}" class="d-inline">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-outline-success mt-3 px-5" style="min-width: 150px;">
-              Pay now
-            </button>
-          </form>
-
-          <a href="{% url 'core:orderitem_list' %}" class="btn btn-outline-secondary mt-3 px-5" style="min-width: 120px;">
-             Cancel
-          </a>
-        </div>
-      </div>
+    {% if price_diff %}
+    <div class="alert alert-warning border-black text-center mx-auto"
+         style="max-width: 732px;">
+        Please note, the price of some items may have changed<br>
+        <small class="text-muted">Prices are subject to change until checkout is complete</small>
     </div>
-  </div>
+    {% elif message %}
+    <div class="alert alert-warning border-black text-center mx-auto"
+         style="max-width: 732px;">
+        {{ message }}
+    </div>
+    {% endif %}
+
+    {% if shipping_info and order %}
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-7">
+            <div class="card border-black p-4">
+                <div class="card-body text-center">
+                    <h3 class="mb-2">Review your order</h3>
+                </div>
+
+                <!-- Shipping Information -->
+                <div class="mb-2">
+                    <h5 class="mb-3">Shipping to:</h5>
+                    <div class="ps-3">
+                        <p class="mb-1">
+                            <strong>{{ shipping_info.first_name }} {{ shipping_info.last_name }}</strong>
+                        </p>
+                        <p class="mb-2 text-muted">{{ shipping_info.email }}</p>
+                        <p class="mb-1">{{ shipping_info.street }} {{ shipping_info.house_number }}</p>
+                        <p class="mb-1">{{ shipping_info.city }}, {{ shipping_info.country }}</p>
+                        <p class="mb-0 text-muted">Postal code: {{ shipping_info.postal_code }}</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Order Items -->
+                <div class="mt-3">
+                    <h5 class="mb-3">Order Items:</h5>
+                    <ul class="list-group mb-3">
+                        {% for item in order.items.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1 me-3" style="min-width: 0;">
+                                <span class="d-block">{{ item.product_name }}</span>
+                                <small>{{ item.product_quantity }} × {{ item.product_unit_price }} CHF</small>
+                            </div>
+                            <div class="text-end" style="min-width: 80px; flex-shrink: 0;">
+                                <span class="text-nowrap">{{ item.product_total_price }} CHF</span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="mt-3">
+                    <h5 class="mb-3">Order Summary:</h5>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Subtotal</span>
+                            <span>{{ order.items_amount }} CHF</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Shipping</span>
+                            <span>{{ order.delivery_amount}} CHF</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between fw-bold">
+                            <span>Total</span>
+                            <span>{{ order.total_amount }} CHF</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 pt-4 mb-1">
+                    <form method="post" action="{% url 'payments:start_payment' order.pk %}">
+                        {% csrf_token %}
+
+                        <div class="payment-methods">
+                            {% for code, label in payment_methods %}
+                            <label class="payment-option">
+                                <input type="radio"
+                                       name="payment_method"
+                                       value="{{ code }}"
+                                       required
+                                       hidden>
+                                <strong>{{ label }}</strong>
+                            </label>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex gap-2 pt-3">
+                            <button type="submit"
+                                    class="btn btn-outline-success"
+                                    style="min-width: 120px;">
+                                Pay now
+                            </button>
+
+                            <a href="{% url 'core:orderitem_list' %}"
+                               class="btn btn-outline-dark"
+                               style="min-width: 120px;">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

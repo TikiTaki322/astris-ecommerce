@@ -1,0 +1,51 @@
+# VCS
+.git/
+.gitignore
+
+# Docker assets
+Dockerfile*
+docker-compose*
+
+# Python artifacts
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Django migration cache
+**/migrations/__pycache__/
+
+# Django generated
+*.log
+logs/
+media/
+staticfiles/
+
+# Docs
+docs/
+
+# Locust
+.locust/
+
+# Virtual Environments
+.venv/
+venv/
+
+# Secrets
+.env*
+*.pem
+*.key
+*.crt
+
+# IDE
+.idea/
+.vscode/
+
+# Build artifacts
+dist/
+build/
+tmp/
+temp/
+
+# Miscellaneous
+*.bak
+*.orig

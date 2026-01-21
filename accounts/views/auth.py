@@ -1,15 +1,15 @@
 from django.contrib.auth.views import LoginView, LogoutView
-from django.views.decorators.csrf import csrf_protect
-from django.utils.decorators import method_decorator
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 
-from core.services.order_builder import OrderBuilderService
 from accounts.forms import UserLoginForm
+from core.services.order_builder import OrderBuilderService
 
 
 class UserLoginView(LoginView):
     authentication_form = UserLoginForm
-    template_name = 'accounts/login.html'
+    template_name = 'accounts/login_form.html'
     redirect_authenticated_user = True
 
     def get_context_data(self, **kwargs):
@@ -20,9 +20,8 @@ class UserLoginView(LoginView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        session_order = self.request.session.get('session_order', {})
-        if session_order:
-            _ = OrderBuilderService(session_order, self.request.user).build()  # Update an order based on the session
+        if session_order := self.request.session.get('session_order', {}):
+            OrderBuilderService(session_order=session_order, user=self.request.user).build()  # Merge session with order
             del self.request.session['session_order']
         return response
 

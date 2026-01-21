@@ -1,0 +1,97 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<style>
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: box-shadow 0.3s ease;
+    }
+
+    .form-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .form-label-fixed {
+        width: 90px;
+        text-align: left;
+        margin-bottom: 0;
+        font-size: 1.05rem;
+        white-space: wrap;
+    }
+
+    .form-input {
+        width: auto;
+    }
+
+    .form-input input {
+        width: 100%;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+
+            <div class="card border-black p-4">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">Change email address</h3>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger text-center">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="form-row mb-3">
+                            <label for="{{ field.id_for_label }}"
+                                   class="form-label-fixed">
+                                {{ field.label }}:
+                            </label>
+
+                            <div class="form-input">
+                                {{ field }}
+                            </div>
+                        </div>
+
+                        {% if field.errors %}
+                            <div class="text-danger small text-center mb-2">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="d-flex flex-column align-items-center gap-2" style="margin-top: 2rem;">
+                        <button type="submit"
+                                class="btn btn-dark"
+                                style="min-width: 150px;">
+                            Change Email
+                        </button>
+
+                        {% if user.is_staff or user.role|lower == 'seller' %}
+                            <a href="{% url 'accounts:backoffice_dashboard' %}" class="text-decoration-none small text-muted">
+                              Back to Dashboard
+                            </a>
+                          {% else %}
+                            <a href="{% url 'accounts:customer_account' %}" class="text-decoration-none small text-muted">
+                              Back to My Account
+                            </a>
+                      {% endif %}
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

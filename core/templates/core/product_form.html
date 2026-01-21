@@ -224,7 +224,7 @@
                       <div class="row">
                         {% if form.instance.image %}
                           <div class="col-md-3">
-                            <img src="{{ form.instance.get_image_url }}" alt="{{ form.instance.get_alt_text }}" class="image-preview rounded mb-2">
+                            <img src="{{ form.instance.image.url }}" alt="{{ form.instance.alt_text }}" class="image-preview rounded mb-2">
                           </div>
                         {% endif %}
 
